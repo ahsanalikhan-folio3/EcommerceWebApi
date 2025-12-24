@@ -8,8 +8,12 @@ namespace EcommerceApp.Application.MappingProfiles
     {
         public MappingProfile()
         {
+            // Product Mappings
             CreateMap<Product, ProductDto>().ReverseMap();
             CreateMap<Product, GetProductDto>().ReverseMap();
+
+            // Application User Mappings
+            CreateMap<ApplicationUser, RegisterDto>().ReverseMap();
         }
     }
 }
