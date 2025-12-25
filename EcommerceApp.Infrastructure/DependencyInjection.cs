@@ -1,4 +1,5 @@
 ﻿using EcommerceApp.Application.Interfaces;
+using EcommerceApp.Application.Interfaces.AdminProfiles;
 using EcommerceApp.Application.Interfaces.Auth;
 using EcommerceApp.Application.Interfaces.Products;
 using EcommerceApp.Infrastructure.Database;
@@ -19,6 +20,7 @@ namespace EcommerceApp.Infrastructure
             });
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IAdminProfileRepository, AdminProfileRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IJwtService, JwtService>();
 

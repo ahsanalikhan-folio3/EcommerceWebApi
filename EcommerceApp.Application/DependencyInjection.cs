@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using FluentValidation;
 using System.Reflection;
 using EcommerceApp.Application.Interfaces.Auth;
+using EcommerceApp.Application.Interfaces.AdminProfiles;
 
 namespace EcommerceApp.Application
 {
@@ -14,6 +15,7 @@ namespace EcommerceApp.Application
         {
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IAdminProfileService, AdminProfileService>();
             services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 

@@ -19,8 +19,8 @@ namespace EcommerceApp.Api.Controllers
         public async Task<IActionResult> RegisterUser (RegisterDto user)
         {
             var result = await authService.RegisterUser(user);
-            if (!result) return BadRequest(ApiResponse.ErrorResponse("User already exists.", null));
-            return Ok(ApiResponse.SuccessResponse("User successfully added.", null));
+            if (result is null) return BadRequest(ApiResponse.ErrorResponse("User already exists.", null));
+            return Ok(ApiResponse.SuccessResponse("User successfully added.", result));
         }
 
         [HttpPost("Login")]

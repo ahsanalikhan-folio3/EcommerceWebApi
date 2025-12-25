@@ -40,9 +40,14 @@ namespace EcommerceApp.Infrastructure.Repositories
             return await db.ApplicationUsers.AnyAsync(x => x.Email == email && x.IsActive);
         }
 
-        public async Task<bool> UserExistAsync(string email)
+        public async Task<bool> UserExistByEmailAsync(string email)
         {
             return await db.ApplicationUsers.AnyAsync(x => x.Email == email);
+        }
+
+        public async Task<bool> UserExistByIdAsync(Guid Id)
+        {
+            return await db.ApplicationUsers.AnyAsync(x => x.Id == Id);
         }
     }
 }

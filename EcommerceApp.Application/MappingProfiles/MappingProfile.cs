@@ -14,6 +14,10 @@ namespace EcommerceApp.Application.MappingProfiles
 
             // Application User Mappings
             CreateMap<ApplicationUser, RegisterDto>().ReverseMap();
+            CreateMap<ApplicationUser, ApplicationUserDto>().ReverseMap();
+
+            // AdminProfile User Mappings
+            CreateMap<AdminProfile, AdminProfileDto>().ReverseMap();
         }
     }
 }

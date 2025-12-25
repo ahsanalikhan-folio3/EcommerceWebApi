@@ -1,0 +1,15 @@
+Tested Things:
+- Jwt Access Token correctly working.
+- Password stored in hash.
+
+
+
+
+
+
+
+
+
+Last Workings:
+- Last Work: Added Hashing Password logic, have to test it.
+- Working on Admin Profile (Have to connect the CreatedBy by extracting the requesting user's record through jwt)
