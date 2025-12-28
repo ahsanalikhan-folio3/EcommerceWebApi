@@ -23,7 +23,7 @@ namespace EcommerceApp.Application.Services
         public async Task<string?> LoginUser(LoginDto user)
         {
             // User must exist.
-            if (!(await uow.Auth.UserExistAsync(user.Email))) return "Does not exist.";
+            if (!(await uow.Auth.UserExistByEmailAsync(user.Email))) return "Does not exist.";
             // User must be active.
             if (!(await uow.Auth.UserActiveAsync(user.Email))) return "InActive.";
 
@@ -41,7 +41,7 @@ namespace EcommerceApp.Application.Services
         public async Task<ApplicationUserDto?> RegisterUser(RegisterDto user)
         {
             // If user exist return false ( can not add the user ).
-            if (await uow.Auth.UserExistAsync(user.Email)) return null;
+            if (await uow.Auth.UserExistByEmailAsync(user.Email)) return null;
 
             ApplicationUser mappedUser = mapper.Map<ApplicationUser>(user);
             mappedUser.HashedPassword = passwordHasher.HashPassword(mappedUser, user.Password); // Hash the password.

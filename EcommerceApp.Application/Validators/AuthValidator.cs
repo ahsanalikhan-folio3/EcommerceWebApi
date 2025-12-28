@@ -24,6 +24,10 @@ namespace EcommerceApp.Application.Validators
                 .Matches(@"[!@#$%^&*()\-+=_\[\]{}|;:'"",<.>/?]+")
                 .WithMessage("Password must contain at least one special character.");
 
+            // ConfirmPassword
+            RuleFor(x => x.ConfirmPassword)
+                .Equal(x => x.Password).WithMessage("Passwords do not match.");
+
             // Phone Number
             RuleFor(x => x.PhoneNumber)
                 .NotEmpty().WithMessage("Phone number is required.")

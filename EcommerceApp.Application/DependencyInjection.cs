@@ -5,7 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using FluentValidation;
 using System.Reflection;
 using EcommerceApp.Application.Interfaces.Auth;
-using EcommerceApp.Application.Interfaces.AdminProfiles;
+using EcommerceApp.Application.Interfaces.Admins;
+using EcommerceApp.Application.Interfaces.Customers;
+using EcommerceApp.Application.Interfaces.Sellers;
 
 namespace EcommerceApp.Application
 {
@@ -15,7 +17,9 @@ namespace EcommerceApp.Application
         {
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IAdminProfileService, AdminProfileService>();
+            services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<ICustomerService, CustomerService>();
+            services.AddScoped<ISellerService, SellerService>();
             services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
