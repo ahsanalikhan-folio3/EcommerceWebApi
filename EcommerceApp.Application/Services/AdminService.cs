@@ -18,26 +18,33 @@ namespace EcommerceApp.Application.Services
 
         public async Task<bool> ActivateUser(Guid userId)
         {
-            return await uow.Admins.ActivateUserAsync(userId);  
+            var result = await uow.Admins.ActivateUserAsync(userId);
+            if (!result) return result;
+            await uow.SaveChangesAsync();
+            return result;
         }
 
-        public async Task<bool> AddAdminProfile(AdminProfileDto adminProfile)
+        //public async Task<bool> AddAdminProfile(AdminProfileDto adminProfile)
+        //{
+        //    bool userAlreadyExist = await uow.Auth.UserExistByIdAsync(adminProfile.UserId);
+        //    bool adminProfileAlreadyExist = await uow.Admins.AdminExistAsync(adminProfile.UserId);
+
+        //    // If user does not exist or admin profile already exists, return false
+        //    if (!userAlreadyExist || adminProfileAlreadyExist) return false;
+
+        //    var mappedProfile = mapper.Map<AdminProfile>(adminProfile);
+        //    await uow.Admins.AddAdminProfile(mappedProfile);
+        //    await uow.SaveChangesAsync();
+
+        //    return true;
+        //}
+
+        public async Task<bool> DeActivateUser(Guid userId)
         {
-            bool userAlreadyExist = await uow.Auth.UserExistByIdAsync(adminProfile.UserId);
-            bool adminProfileAlreadyExist = await uow.Admins.AdminExistAsync(adminProfile.UserId);
-
-            // If user does not exist or admin profile already exists, return false
-            if (!userAlreadyExist || adminProfileAlreadyExist) return false;
-
-            var mappedProfile = mapper.Map<AdminProfile>(adminProfile);
-            await uow.Admins.AddAdminProfile(mappedProfile);
-            
-            return true;
-        }
-
-        public Task<bool> DeActivateUser(Guid userId)
-        {
-            return uow.Admins.DeActivateUserAsync(userId);
+            var result = await uow.Admins.DeActivateUserAsync(userId);
+            if (!result) return result;
+            await uow.SaveChangesAsync();
+            return result;
         }
     }
 }

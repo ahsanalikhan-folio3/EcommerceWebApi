@@ -2,6 +2,7 @@
 {
     public class ProductDto
     {
+        public Guid SellerId { get; set; }
         public required string Name { get; set; }
         public required string ProductSlug { get; set; }
         public required string Description { get; set; }

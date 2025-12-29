@@ -8,6 +8,7 @@ using EcommerceApp.Application.Interfaces.Auth;
 using EcommerceApp.Application.Interfaces.Admins;
 using EcommerceApp.Application.Interfaces.Customers;
 using EcommerceApp.Application.Interfaces.Sellers;
+using EcommerceApp.Application.Interfaces.Orders;
 
 namespace EcommerceApp.Application
 {
@@ -20,6 +21,7 @@ namespace EcommerceApp.Application
             services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<ICustomerService, CustomerService>();
             services.AddScoped<ISellerService, SellerService>();
+            services.AddScoped<IOrderService, OrderService>();
             services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 

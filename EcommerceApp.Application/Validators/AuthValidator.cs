@@ -4,9 +4,9 @@ using FluentValidation;
 
 namespace EcommerceApp.Application.Validators
 {
-    public class RegisterDtoValidator : AbstractValidator<RegisterDto>
+    public class RegisterUserDtoValidator : AbstractValidator<RegisterUserDto>
     {
-        public RegisterDtoValidator()
+        public RegisterUserDtoValidator()
         {
             // Email
             RuleFor(x => x.Email)
@@ -56,4 +56,86 @@ namespace EcommerceApp.Application.Validators
                 .EmailAddress().WithMessage("Email Address is not valid");
         }
     }
+
+    public class CustomerProfileDtoValidator : AbstractValidator<CustomerProfileDto>
+    {
+        public CustomerProfileDtoValidator() 
+        {
+            Include(new RegisterUserDtoValidator());
+
+            RuleFor(x => x.HouseNumber)
+                    .NotEmpty().WithMessage("House number is required.")
+                    .MaximumLength(20);
+
+            RuleFor(x => x.StreetNumber)
+                .NotEmpty().WithMessage("Street number is required.")
+                .MaximumLength(50);
+
+            RuleFor(x => x.City)
+                .NotEmpty().WithMessage("City is required.")
+                .MaximumLength(100);
+
+            RuleFor(x => x.State)
+                .NotEmpty().WithMessage("State is required.")
+                .MaximumLength(100);
+
+            RuleFor(x => x.PostalCode)
+                .NotEmpty().WithMessage("Postal code is required.")
+                .MaximumLength(20)
+                .Matches(@"^[A-Za-z0-9\- ]+$")
+                .WithMessage("Postal code format is invalid.");
+
+            RuleFor(x => x.Country)
+                .NotEmpty().WithMessage("Country is required.")
+                .MaximumLength(100);
+
+            RuleFor(x => x.Gender)
+                .NotEmpty().WithMessage("Gender is required.")
+                .Must(BeValidGender)
+                .WithMessage("Gender must be Male, Female, or Other.");
+        }
+
+        private bool BeValidGender(string gender)
+        {
+            return gender.Equals("Male", StringComparison.OrdinalIgnoreCase)
+                || gender.Equals("Female", StringComparison.OrdinalIgnoreCase)
+                || gender.Equals("Other", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+    public class SellerProfileDtoValidator : AbstractValidator<SellerProfileDto>
+    {
+        public SellerProfileDtoValidator()
+        {
+            Include(new RegisterUserDtoValidator());
+            RuleFor(x => x.Storename)
+           .NotEmpty().WithMessage("Store name is required.")
+           .MinimumLength(3).WithMessage("Store name must be at least 3 characters.")
+           .MaximumLength(100).WithMessage("Store name must not exceed 100 characters.");
+
+            RuleFor(x => x.City)
+                .NotEmpty().WithMessage("City is required.")
+                .MaximumLength(100);
+
+            RuleFor(x => x.State)
+                .NotEmpty().WithMessage("State is required.")
+                .MaximumLength(100);
+
+            RuleFor(x => x.PostalCode)
+                .NotEmpty().WithMessage("Postal code is required.")
+                .Matches(@"^[A-Za-z0-9\- ]{3,12}$")
+                .WithMessage("Postal code format is invalid.");
+
+            RuleFor(x => x.Country)
+                .NotEmpty().WithMessage("Country is required.")
+                .MaximumLength(100);
+        }
+
+        private bool BeValidGender(string gender)
+        {
+            return gender.Equals("Male", StringComparison.OrdinalIgnoreCase)
+                || gender.Equals("Female", StringComparison.OrdinalIgnoreCase)
+                || gender.Equals("Other", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
 }

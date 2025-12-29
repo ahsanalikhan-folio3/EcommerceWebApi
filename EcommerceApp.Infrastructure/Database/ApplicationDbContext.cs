@@ -84,6 +84,15 @@ namespace EcommerceApp.Infrastructure.Database
                 .Property(x => x.TotalAmount)
                 .HasPrecision(18, 2);
 
+            modelBuilder.Entity<Order>()
+                .Property(x => x.Status)
+                .HasConversion<string>()
+                .IsRequired();
+
+            modelBuilder.Entity<Order>()
+                .Property(x => x.Status)
+                .HasDefaultValue("Pending");
+
             // =====================================================
             // 3️. SELLER → PRODUCTS (1 : MANY)
             // =====================================================
@@ -117,9 +126,9 @@ namespace EcommerceApp.Infrastructure.Database
                 .HasForeignKey(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<OrderItem>()
-                .Property(x => x.UnitPrice)
-                .HasPrecision(18, 2);
+            //modelBuilder.Entity<OrderItem>()
+            //    .Property(x => x.UnitPrice)
+            //    .HasPrecision(18, 2);
             modelBuilder.Entity<OrderItem>()
                 .Property(x => x.Discount)
                 .HasPrecision(18, 2);

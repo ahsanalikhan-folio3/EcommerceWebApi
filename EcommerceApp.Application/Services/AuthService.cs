@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using EcommerceApp.Application.Common;
 using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Interfaces;
 using EcommerceApp.Application.Interfaces.Auth;
@@ -38,7 +39,7 @@ namespace EcommerceApp.Application.Services
             return $"You are a {appUser.Role} on my Ecommerce Website and your JwtToken is {jwtToken}";
         }
 
-        public async Task<ApplicationUserDto?> RegisterUser(RegisterDto user)
+        private async Task<ApplicationUser?> RegisterUser(RegisterUserDto user)
         {
             // If user exist return false ( can not add the user ).
             if (await uow.Auth.UserExistByEmailAsync(user.Email)) return null;
@@ -50,9 +51,65 @@ namespace EcommerceApp.Application.Services
             
             var result = await uow.Auth.AddUser(mappedUser);
             if (result is not ApplicationUser) return null;
+
+            return result;
+        }
+
+        public async Task<GetCustomerProfileDto?> RegisterCustomer(CustomerProfileDto customer)
+        {
+            RegisterUserDto appUserTableEntry = mapper.Map<RegisterUserDto>(customer);
+            appUserTableEntry.Role = AppRoles.Customer;
+
+            ApplicationUser? appUser = await RegisterUser(appUserTableEntry);
+            if (appUser is null) return null;
+
+            CustomerProfile customerProfile = mapper.Map<CustomerProfile>(customer);
+            customerProfile.UserId = appUser.Id;
+            var result = await uow.Customers.AddCustomerProfile(customerProfile);
+            if (!result) return null;
+
             await uow.SaveChangesAsync();
 
-            return mapper.Map<ApplicationUserDto>(result);
+            GetCustomerProfileDto mappedResult = mapper.Map<GetCustomerProfileDto>(customer);
+            return mappedResult;
+        }
+
+        public async Task<GetAdminProfileDto?> RegisterAdmin(AdminProfileDto admin)
+        {
+            RegisterUserDto appUserTableEntry = mapper.Map<RegisterUserDto>(admin);
+            appUserTableEntry.Role = AppRoles.Admin;
+
+            ApplicationUser? appUser = await RegisterUser(appUserTableEntry);
+            if (appUser is null) return null;
+
+            AdminProfile adminProfile = mapper.Map<AdminProfile>(admin);
+            adminProfile.UserId = appUser.Id;
+            var result = await uow.Admins.AddAdminProfile(adminProfile);
+            if (!result) return null;
+
+            await uow.SaveChangesAsync();
+
+            GetAdminProfileDto mappedResult = mapper.Map<GetAdminProfileDto>(admin);
+            return mappedResult;
+        }
+
+        public async Task<GetSellerProfileDto?> RegisterSeller(SellerProfileDto seller)
+        {
+            RegisterUserDto appUserTableEntry = mapper.Map<RegisterUserDto>(seller);
+            appUserTableEntry.Role = AppRoles.Seller;
+
+            ApplicationUser? appUser = await RegisterUser(appUserTableEntry);
+            if (appUser is null) return null;
+
+            SellerProfile sellerProfile = mapper.Map<SellerProfile>(seller);
+            sellerProfile.UserId = appUser.Id;
+            var result = await uow.Sellers.AddSellerProfile(sellerProfile);
+            if (!result) return null;
+
+            await uow.SaveChangesAsync();
+
+            GetSellerProfileDto mappedResult = mapper.Map<GetSellerProfileDto>(seller);
+            return mappedResult;
         }
     }
 }

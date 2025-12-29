@@ -15,12 +15,28 @@ namespace EcommerceApp.Api.Controllers
             this.authService = authService;
         }
 
-        [HttpPost("Register")]
-        public async Task<IActionResult> RegisterUser (RegisterDto user)
+        //[HttpPost("Register/Admin")]
+        //public async Task<IActionResult> RegisterAdmin (AdminProfileDto user)
+        //{
+        //    var result = await authService.RegisterAdmin(user);
+        //    if (result is null) return BadRequest(ApiResponse.ErrorResponse("User already exists.", null));
+        //    return Ok(ApiResponse.SuccessResponse("User successfully added.", result));
+        //}
+
+        [HttpPost("Register/Customer")]
+        public async Task<IActionResult> RegisterCustomer (CustomerProfileDto user)
         {
-            var result = await authService.RegisterUser(user);
+            var result = await authService.RegisterCustomer(user);
             if (result is null) return BadRequest(ApiResponse.ErrorResponse("User already exists.", null));
-            return Ok(ApiResponse.SuccessResponse("User successfully added.", result));
+            return Ok(ApiResponse.SuccessResponse("Customer successfully added.", result));
+        }
+
+        [HttpPost("Register/Seller")]
+        public async Task<IActionResult> RegisterSeller (SellerProfileDto user)
+        {
+            var result = await authService.RegisterSeller(user);
+            if (result is null) return BadRequest(ApiResponse.ErrorResponse("User already exists.", null));
+            return Ok(ApiResponse.SuccessResponse("Seller successfully added.", result));
         }
 
         [HttpPost("Login")]

@@ -14,12 +14,12 @@ namespace EcommerceApp.Api.Controllers
         {
             this.SellerService = SellerService;
         }
-        [HttpPost("{id}")]
-        public async Task<IActionResult> CreateSellerProfile(Guid Id, SellerProfileDto SellerProfileDto)
-        {
-            var result = await SellerService.AddSellerProfile(Id, SellerProfileDto);
-            if (!result) return BadRequest(ApiResponse.ErrorResponse("Seller Profile already exists", null));
-            return Ok(ApiResponse.SuccessResponse("Seller Profile successfully created", null));
-        }
+        //[HttpPost("{id}")]
+        //public async Task<IActionResult> CreateSellerProfile(Guid id, SellerProfileDto SellerProfileDto)
+        //{
+        //    var result = await SellerService.AddSellerProfile(id, SellerProfileDto);
+        //    if (!result) return BadRequest(ApiResponse.ErrorResponse("Seller Profile already exists", null));
+        //    return Ok(ApiResponse.SuccessResponse("Seller Profile successfully created", null));
+        //}
     }
 }

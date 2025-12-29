@@ -16,19 +16,20 @@ namespace EcommerceApp.Application.Services
             this.uow = uow;
             this.mapper = mapper;
         }
-        public async Task<bool> AddCustomerProfile(Guid Id, CustomerProfileDto customerProfileDto)
-        {
-            bool userAlreadyExist = await uow.Auth.UserExistByIdAsync(Id);
-            bool customerProfileAlreadyExist = await uow.Customers.CustomerExistAsync(Id);
+        //public async Task<bool> AddCustomerProfile(Guid Id, CustomerProfileDto customerProfileDto)
+        //{
+        //    bool userAlreadyExist = await uow.Auth.UserExistByIdAsync(Id);
+        //    bool customerProfileAlreadyExist = await uow.Customers.CustomerExistAsync(Id);
 
-            // If user does not exist or customer profile already exists, return false
-            if (!userAlreadyExist || customerProfileAlreadyExist) return false;
-            var mappedCustomerProfile = mapper.Map<CustomerProfile>(customerProfileDto);
+        //    // If user does not exist or customer profile already exists, return false
+        //    if (!userAlreadyExist || customerProfileAlreadyExist) return false;
+        //    var mappedCustomerProfile = mapper.Map<CustomerProfile>(customerProfileDto);
 
-            mappedCustomerProfile.UserId = Id;
-            await uow.Customers.AddCustomerProfile(mappedCustomerProfile);
+        //    mappedCustomerProfile.UserId = Id;
+        //    await uow.Customers.AddCustomerProfile(mappedCustomerProfile);
+        //    await uow.SaveChangesAsync();
 
-            return true;
-        }
+        //    return true;
+        //}
     }
 }

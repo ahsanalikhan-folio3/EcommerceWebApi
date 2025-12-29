@@ -16,21 +16,21 @@ namespace EcommerceApp.Api.Controllers
         {
             this.adminProfileService = adminProfileService;
         }
-        [HttpPost]
-        public async Task<IActionResult> CreateAdminProfile(AdminProfileDto adminProfileDto)
-        {
-            var result = await adminProfileService.AddAdminProfile(adminProfileDto);
-            if (!result) return BadRequest(ApiResponse.ErrorResponse("Admin Profile already exists", null));
-            return Ok(ApiResponse.SuccessResponse("Admin Profile successfully created", null));
-        }
-        [HttpPost("activate-user")]
+        //[HttpPost]
+        //public async Task<IActionResult> CreateAdminProfile(AdminProfileDto adminProfileDto)
+        //{
+        //    var result = await adminProfileService.AddAdminProfile(adminProfileDto);
+        //    if (!result) return BadRequest(ApiResponse.ErrorResponse("Admin Profile already exists", null));
+        //    return Ok(ApiResponse.SuccessResponse("Admin Profile successfully created", null));
+        //}
+        [HttpPost("Activate-User")]
         public async Task<IActionResult> ActivateUser(Guid UserId)
         {
             bool result = await adminProfileService.ActivateUser(UserId);
             if (!result) return BadRequest(ApiResponse.ErrorResponse("User does not exist or is already active", null));
             return Ok(ApiResponse.SuccessResponse("User successfully activated", null));
         }
-        [HttpPost("deactivate-user")]
+        [HttpPost("Deactivate-User")]
         public async Task<IActionResult> DeActivateUser(Guid UserId)
         {
             bool  result = await adminProfileService.DeActivateUser(UserId);
