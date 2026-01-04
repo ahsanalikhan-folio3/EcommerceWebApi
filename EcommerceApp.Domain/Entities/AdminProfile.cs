@@ -2,7 +2,8 @@
 {
     public class AdminProfile
     {
-        public Guid UserId { get; set; } // FK - ApplicationUsers Table
-        public Guid CreatedBy { get; set; } // FK - ApplicationUsers Table [Admin that created this User]
+        public int UserId { get; set; } // FK - ApplicationUsers Table
+        public required ApplicationUser User { get; set; } // FK - ApplicationUsers Table
+        public int CreatedBy { get; set; } // FK - ApplicationUsers Table [Admin that created this User]
     }
 }

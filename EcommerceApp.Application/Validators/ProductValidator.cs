@@ -31,17 +31,13 @@ namespace EcommerceApp.Application.Validators
             RuleFor(x => x.Category)
                 .NotEmpty().WithMessage("Category is required");
         }
-
-        /*
-        
-            public required string Name { get; set; }
-            public required string Description { get; set; }
-            public required string ProductSlug { get; set; }
-            public required string Category { get; set; }
-            public required int StockQuantity { get; set; }
-            public required decimal Price { get; set; }
-            public required bool IsAvailable { get; set; }
-         
-        */
+    }
+    public class UpdateProductStockDtoValidator : AbstractValidator<UpdateProductStockDto>
+    {
+        public UpdateProductStockDtoValidator()
+        {
+            RuleFor(x => x.Stock)
+                .GreaterThan(-1).WithMessage("Stock must be greater than or equal to 0.");
+        }
     }
 }

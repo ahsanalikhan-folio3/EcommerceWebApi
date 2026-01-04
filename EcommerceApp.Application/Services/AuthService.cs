@@ -64,7 +64,8 @@ namespace EcommerceApp.Application.Services
             if (appUser is null) return null;
 
             CustomerProfile customerProfile = mapper.Map<CustomerProfile>(customer);
-            customerProfile.UserId = appUser.Id;
+            customerProfile.User = appUser;
+            appUser.IsActive = true; // Directly register customers
             var result = await uow.Customers.AddCustomerProfile(customerProfile);
             if (!result) return null;
 
@@ -83,7 +84,7 @@ namespace EcommerceApp.Application.Services
             if (appUser is null) return null;
 
             AdminProfile adminProfile = mapper.Map<AdminProfile>(admin);
-            adminProfile.UserId = appUser.Id;
+            adminProfile.User = appUser;
             var result = await uow.Admins.AddAdminProfile(adminProfile);
             if (!result) return null;
 
@@ -102,7 +103,7 @@ namespace EcommerceApp.Application.Services
             if (appUser is null) return null;
 
             SellerProfile sellerProfile = mapper.Map<SellerProfile>(seller);
-            sellerProfile.UserId = appUser.Id;
+            sellerProfile.User = appUser;
             var result = await uow.Sellers.AddSellerProfile(sellerProfile);
             if (!result) return null;
 

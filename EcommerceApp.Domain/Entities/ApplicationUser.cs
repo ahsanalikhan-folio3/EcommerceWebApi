@@ -2,7 +2,7 @@
 {
     public class ApplicationUser
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public required string Email { get; set; }
         public required string HashedPassword { get; set; }
         public required string PhoneNumber { get; set; }

@@ -15,7 +15,7 @@ namespace EcommerceApp.Api.Controllers
             this.customerService = customerService;
         }
         //[HttpPost("{id}")]
-        //public async Task<IActionResult> CreateCustomerProfile(Guid id, CustomerProfileDto customerProfileDto)
+        //public async Task<IActionResult> CreateCustomerProfile(int id, CustomerProfileDto customerProfileDto)
         //{
         //    var result = await customerService.AddCustomerProfile(id, customerProfileDto);
         //    if (!result) return BadRequest(ApiResponse.ErrorResponse("Customer Profile already exists", null));

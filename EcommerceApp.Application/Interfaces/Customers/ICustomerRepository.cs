@@ -4,7 +4,7 @@ namespace EcommerceApp.Application.Interfaces.Customers
 {
     public interface ICustomerRepository
     {
-        Task<bool> CustomerExistAsync(Guid UserId);
+        Task<bool> CustomerExistAsync(int UserId);
         Task<bool> AddCustomerProfile(CustomerProfile customerProfile);
     }
 }

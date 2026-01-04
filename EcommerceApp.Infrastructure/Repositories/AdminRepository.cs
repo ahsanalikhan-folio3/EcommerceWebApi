@@ -12,7 +12,7 @@ namespace EcommerceApp.Infrastructure.Repositories
         {
             this.db = db;
         }
-        public async Task<bool> ActivateUserAsync(Guid userId)
+        public async Task<bool> ActivateUserAsync(int userId)
         {
             var user = await db.ApplicationUsers
                 .FirstOrDefaultAsync(u => u.Id == userId);
@@ -30,12 +30,12 @@ namespace EcommerceApp.Infrastructure.Repositories
             var result = await db.AdminProfiles.AddAsync(adminProfile);
             return result is not null;
         }
-        public async Task<bool> AdminExistAsync(Guid UserId)
+        public async Task<bool> AdminExistAsync(int UserId)
         {
             return await db.AdminProfiles.AnyAsync(x => x.UserId == UserId);
         }
 
-        public async Task<bool> DeActivateUserAsync(Guid userId)
+        public async Task<bool> DeActivateUserAsync(int userId)
         {
             var user = await db.ApplicationUsers
                 .FirstOrDefaultAsync(u => u.Id == userId);

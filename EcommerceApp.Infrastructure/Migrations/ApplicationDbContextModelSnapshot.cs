@@ -24,25 +24,24 @@ namespace EcommerceApp.Infrastructure.Migrations
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.AdminProfile", b =>
                 {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
 
                     b.HasKey("UserId");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
 
                     b.ToTable("AdminProfiles");
                 });
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.ApplicationUser", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -77,8 +76,8 @@ namespace EcommerceApp.Infrastructure.Migrations
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.CustomerProfile", b =>
                 {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.Property<string>("City")
                         .IsRequired()
@@ -110,33 +109,31 @@ namespace EcommerceApp.Infrastructure.Migrations
 
                     b.HasKey("UserId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
                     b.ToTable("CustomerProfiles");
                 });
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.CustomerServiceProfile", b =>
                 {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
-                    b.Property<Guid>("SellerId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("SellerUserUserId")
+                        .HasColumnType("int");
 
                     b.HasKey("UserId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("SellerUserUserId");
 
                     b.ToTable("CustomerServiceProfiles");
                 });
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.Order", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
@@ -145,8 +142,8 @@ namespace EcommerceApp.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -155,40 +152,13 @@ namespace EcommerceApp.Infrastructure.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("EcommerceApp.Domain.Entities.OrderItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("Discount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<Guid>("OrderId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("OrderId", "ProductId")
-                        .IsUnique();
-
-                    b.ToTable("OrderItems");
-                });
-
             modelBuilder.Entity("EcommerceApp.Domain.Entities.Product", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Category")
                         .IsRequired()
@@ -216,8 +186,8 @@ namespace EcommerceApp.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("SellerId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("SellerId")
+                        .HasColumnType("int");
 
                     b.Property<int>("StockQuantity")
                         .HasColumnType("int");
@@ -232,10 +202,43 @@ namespace EcommerceApp.Infrastructure.Migrations
                     b.ToTable("Products");
                 });
 
+            modelBuilder.Entity("EcommerceApp.Domain.Entities.SellerOrder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("Pending");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("OrderId", "ProductId")
+                        .IsUnique();
+
+                    b.ToTable("SellerOrders");
+                });
+
             modelBuilder.Entity("EcommerceApp.Domain.Entities.SellerProfile", b =>
                 {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.Property<string>("City")
                         .IsRequired()
@@ -263,37 +266,48 @@ namespace EcommerceApp.Infrastructure.Migrations
 
                     b.HasKey("UserId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
                     b.ToTable("SellerProfiles");
                 });
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.AdminProfile", b =>
                 {
-                    b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", null)
+                    b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", "User")
                         .WithOne()
                         .HasForeignKey("EcommerceApp.Domain.Entities.AdminProfile", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.CustomerProfile", b =>
                 {
-                    b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", null)
+                    b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", "User")
                         .WithOne()
                         .HasForeignKey("EcommerceApp.Domain.Entities.CustomerProfile", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.CustomerServiceProfile", b =>
                 {
-                    b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", null)
+                    b.HasOne("EcommerceApp.Domain.Entities.SellerProfile", "SellerUser")
+                        .WithMany()
+                        .HasForeignKey("SellerUserUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", "User")
                         .WithOne()
                         .HasForeignKey("EcommerceApp.Domain.Entities.CustomerServiceProfile", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("SellerUser");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.Order", b =>
@@ -305,25 +319,6 @@ namespace EcommerceApp.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EcommerceApp.Domain.Entities.OrderItem", b =>
-                {
-                    b.HasOne("EcommerceApp.Domain.Entities.Order", "CorresponingOrder")
-                        .WithMany("OrderItems")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EcommerceApp.Domain.Entities.Product", "OrderedProduct")
-                        .WithMany("BelongedOrderItems")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("CorresponingOrder");
-
-                    b.Navigation("OrderedProduct");
-                });
-
             modelBuilder.Entity("EcommerceApp.Domain.Entities.Product", b =>
                 {
                     b.HasOne("EcommerceApp.Domain.Entities.SellerProfile", null)
@@ -333,23 +328,44 @@ namespace EcommerceApp.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("EcommerceApp.Domain.Entities.SellerOrder", b =>
+                {
+                    b.HasOne("EcommerceApp.Domain.Entities.Order", "CorresponingOrder")
+                        .WithMany("SellerOrders")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EcommerceApp.Domain.Entities.Product", "OrderedProduct")
+                        .WithMany("BelongedSellerOrders")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CorresponingOrder");
+
+                    b.Navigation("OrderedProduct");
+                });
+
             modelBuilder.Entity("EcommerceApp.Domain.Entities.SellerProfile", b =>
                 {
-                    b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", null)
+                    b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", "User")
                         .WithOne()
                         .HasForeignKey("EcommerceApp.Domain.Entities.SellerProfile", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.Order", b =>
                 {
-                    b.Navigation("OrderItems");
+                    b.Navigation("SellerOrders");
                 });
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.Product", b =>
                 {
-                    b.Navigation("BelongedOrderItems");
+                    b.Navigation("BelongedSellerOrders");
                 });
 #pragma warning restore 612, 618
         }

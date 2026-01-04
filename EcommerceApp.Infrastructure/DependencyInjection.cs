@@ -5,6 +5,7 @@ using EcommerceApp.Application.Interfaces.Customers;
 using EcommerceApp.Application.Interfaces.Orders;
 using EcommerceApp.Application.Interfaces.Products;
 using EcommerceApp.Application.Interfaces.Sellers;
+using EcommerceApp.Application.Interfaces.User;
 using EcommerceApp.Infrastructure.Database;
 using EcommerceApp.Infrastructure.Repositories;
 using EcommerceApp.Infrastructure.Security;
@@ -21,14 +22,17 @@ namespace EcommerceApp.Infrastructure
             {
                 options.UseSqlServer(dbConnectionString);
             });
+            services.AddHttpContextAccessor();
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddScoped<IAdminRepository, AdminRepository>();
             services.AddScoped<ICustomerRepository, CustomerRepository>();
             services.AddScoped<ISellerRepository, SellerRepository>(); 
             services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<ISellerOrderRepository, SellerOrderRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IJwtService, JwtService>();
+            services.AddScoped<ICurrentUser, CurrentUser>();
 
             return services;
         }

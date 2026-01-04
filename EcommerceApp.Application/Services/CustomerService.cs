@@ -16,7 +16,7 @@ namespace EcommerceApp.Application.Services
             this.uow = uow;
             this.mapper = mapper;
         }
-        //public async Task<bool> AddCustomerProfile(Guid Id, CustomerProfileDto customerProfileDto)
+        //public async Task<bool> AddCustomerProfile(int Id, CustomerProfileDto customerProfileDto)
         //{
         //    bool userAlreadyExist = await uow.Auth.UserExistByIdAsync(Id);
         //    bool customerProfileAlreadyExist = await uow.Customers.CustomerExistAsync(Id);

@@ -18,7 +18,7 @@ namespace EcommerceApp.Infrastructure.Repositories
             return (result is not null) ? true : false;
         }
 
-        public async Task<bool> SellerExistAsync(Guid UserId)
+        public async Task<bool> SellerExistAsync(int UserId)
         {
             return await db.SellerProfiles.AnyAsync(c => c.UserId == UserId);
         }

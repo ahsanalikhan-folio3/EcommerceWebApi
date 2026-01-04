@@ -30,6 +30,12 @@ namespace EcommerceApp.Application.MappingProfiles
             CreateMap<SellerProfile, SellerProfileDto>().ReverseMap();
             CreateMap<SellerProfileDto, RegisterUserDto>().ReverseMap();
             CreateMap<GetSellerProfileDto, SellerProfileDto>().ReverseMap();
+
+            // SellerOrder Mappings
+            CreateMap<SellerOrder, SellerOrderDto>().ReverseMap();
+
+            // Order Mappings
+            CreateMap<Order, OrderDto>().ReverseMap();
         }
     }
 }

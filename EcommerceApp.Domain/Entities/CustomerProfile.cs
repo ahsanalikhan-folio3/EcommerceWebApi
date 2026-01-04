@@ -2,7 +2,8 @@
 {
     public class CustomerProfile
     {
-        public Guid UserId { get; set; } // FK - ApplicationUsers Table
+        public int UserId { get; set; } // FK - ApplicationUsers Table
+        public required ApplicationUser User { get; set; } // FK - ApplicationUsers Table
         public required string HouseNumber { get; set; } 
         public required string StreetNumber { get; set; } 
         public required string City { get; set; } 

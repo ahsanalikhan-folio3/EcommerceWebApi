@@ -16,22 +16,22 @@ namespace EcommerceApp.Application.Services
             this.uow = uow;
             this.mapper = mapper;
         }
-        public async Task<GetProductDto?> AddProduct(ProductDto product)
-        {
-            string productSlug = product.ProductSlug;
-            bool doesProductExist = await uow.Products.ProductExistsAsync(productSlug);
-            if (doesProductExist) return null;
+        //public async Task<GetProductDto?> AddProduct(ProductDto product)
+        //{
+        //    string productSlug = product.ProductSlug;
+        //    bool doesProductExist = await uow.Products.ProductExistsAsync(productSlug);
+        //    if (doesProductExist) return null;
 
-            Product NewProduct = mapper.Map<Product>(product);
-            NewProduct.CreatedAt = DateTime.UtcNow;
-            NewProduct.UpdatedAt= DateTime.UtcNow;
-            Product AddedProduct = await uow.Products.AddProduct(NewProduct);
-            await uow.SaveChangesAsync();
+        //    Product NewProduct = mapper.Map<Product>(product);
+        //    NewProduct.CreatedAt = DateTime.UtcNow;
+        //    NewProduct.UpdatedAt= DateTime.UtcNow;
+        //    Product AddedProduct = await uow.Products.AddProduct(NewProduct);
+        //    await uow.SaveChangesAsync();
 
-            return mapper.Map<GetProductDto>(AddedProduct);
-        }
+        //    return mapper.Map<GetProductDto>(AddedProduct);
+        //}
 
-        public async Task<bool> DeleteProduct(Guid id)
+        public async Task<bool> DeleteProduct(int id)
         {
             Product? product = await uow.Products.GetProductById(id);
             if (product is null) return false;
@@ -48,13 +48,13 @@ namespace EcommerceApp.Application.Services
             return mapper.Map<List<GetProductDto>>(products);
         }
 
-        public async Task<GetProductDto?> GetProductById(Guid id)
+        public async Task<GetProductDto?> GetProductById(int id)
         {
             Product? product = await uow.Products.GetProductById(id);
             return mapper.Map<GetProductDto>(product);
         }
 
-        public async Task<GetProductDto?> UpdateProduct(Guid id, ProductDto product)
+        public async Task<GetProductDto?> UpdateProduct(int id, ProductDto product)
         {
             Product? existingProduct = await uow.Products.GetProductById(id);
             if (existingProduct is null) return null;

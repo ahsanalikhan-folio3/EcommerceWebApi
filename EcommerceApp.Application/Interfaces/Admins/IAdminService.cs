@@ -5,7 +5,8 @@ namespace EcommerceApp.Application.Interfaces.Admins
     public interface IAdminService
     {
         //Task<bool> AddAdminProfile(AdminProfileDto adminProfile);
-        Task<bool> ActivateUser(Guid userId);
-        Task<bool> DeActivateUser(Guid userId);
+        Task<bool> ActivateUser(int userId);
+        Task<bool> DeActivateUser(int userId);
+        Task<bool> UpdateSellerOrderStatus(UpdateSellerOrderStatusFromAdminSideDto updateSellerOrderStatusFromAdminSide);
     }
 }

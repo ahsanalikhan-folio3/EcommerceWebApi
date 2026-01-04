@@ -2,6 +2,7 @@
 using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Interfaces.Products;
 using EcommerceApp.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EcommerceApp.Api.Controllers
@@ -24,35 +25,36 @@ namespace EcommerceApp.Api.Controllers
         }
         
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetProductByid (Guid id) 
+        public async Task<IActionResult> GetProductByid (int id) 
         {
             GetProductDto? product = await productService.GetProductById(id);
             if (product is null) return NotFound(ApiResponse.ErrorResponse("Product not found.", null));
             return Ok(ApiResponse.SuccessResponse("Product found.", product));
         }
 
-        [HttpPost]
-        public async Task<IActionResult> AddProduct (ProductDto product) 
-        {
-            GetProductDto? resultant = await productService.AddProduct(product);
-            if (resultant is null) return BadRequest(ApiResponse.ErrorResponse("Product already exist.", null));
-            return Ok(ApiResponse.SuccessResponse("Product added successfully.", resultant));
-        }
+        //[Authorize(Roles = AppRoles.Seller)]
+        //[HttpPost]
+        //public async Task<IActionResult> AddProduct (ProductDto product) 
+        //{
+        //    GetProductDto? resultant = await productService.AddProduct(product);
+        //    if (resultant is null) return BadRequest(ApiResponse.ErrorResponse("Product already exist.", null));
+        //    return Ok(ApiResponse.SuccessResponse("Product added successfully.", resultant));
+        //}
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProduct (Guid id, ProductDto product) 
-        {
-            GetProductDto? resultant = await productService.UpdateProduct(id, product);
-            if (resultant is null) return NotFound(ApiResponse.ErrorResponse("Product not found.", null));
-            return Ok(ApiResponse.SuccessResponse("Product updated successfully.", resultant));
-        }
-        
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProduct (Guid id) 
-        {
-            bool result = await productService.DeleteProduct(id);
-            if (!result) return NotFound(ApiResponse.ErrorResponse("Product not found.", null));
-            return Ok(ApiResponse.SuccessResponse("Product deleted successfully.", null));
-        }
+        //    [HttpPut("{id}")]
+        //    public async Task<IActionResult> UpdateProduct (int id, ProductDto product) 
+        //    {
+        //        GetProductDto? resultant = await productService.UpdateProduct(id, product);
+        //        if (resultant is null) return NotFound(ApiResponse.ErrorResponse("Product not found.", null));
+        //        return Ok(ApiResponse.SuccessResponse("Product updated successfully.", resultant));
+        //    }
+
+        //    [HttpDelete("{id}")]
+        //    public async Task<IActionResult> DeleteProduct (int id) 
+        //    {
+        //        bool result = await productService.DeleteProduct(id);
+        //        if (!result) return NotFound(ApiResponse.ErrorResponse("Product not found.", null));
+        //        return Ok(ApiResponse.SuccessResponse("Product deleted successfully.", null));
+        //    }
     }
 }

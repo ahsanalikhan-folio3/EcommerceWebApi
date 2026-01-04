@@ -1,0 +1,18 @@
+Admin Cases:
+============
+-> Admin is able to login.
+-> Admin is able to activate/deactiviate a user. [Deactivated user wont be able to login.]
+-> Admin is able to update order status to either inwarehouse, shippped or delivered only.
+
+Seller Cases:
+=============
+-> Seller is able to register. [requires admin approval]
+-> Seller is able to login.
+-> Seller is able to add products.
+-> Seller is able to update order status to either pending or processing only.
+
+Customer Cases:
+===============
+-> Customer is able to register. [direct register]
+-> Customer is able to login.
+-> Customer is able to place orders.

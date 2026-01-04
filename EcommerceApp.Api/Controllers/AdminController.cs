@@ -1,6 +1,7 @@
 ﻿using EcommerceApp.Application.Common;
 using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Interfaces.Admins;
+using EcommerceApp.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +12,10 @@ namespace EcommerceApp.Api.Controllers
     [ApiController]
     public class AdminController : ControllerBase
     {
-        private readonly IAdminService adminProfileService;
-        public AdminController(IAdminService adminProfileService)
+        private readonly IAdminService adminService;
+        public AdminController(IAdminService adminService)
         {
-            this.adminProfileService = adminProfileService;
+            this.adminService = adminService;
         }
         //[HttpPost]
         //public async Task<IActionResult> CreateAdminProfile(AdminProfileDto adminProfileDto)
@@ -24,18 +25,25 @@ namespace EcommerceApp.Api.Controllers
         //    return Ok(ApiResponse.SuccessResponse("Admin Profile successfully created", null));
         //}
         [HttpPost("Activate-User")]
-        public async Task<IActionResult> ActivateUser(Guid UserId)
+        public async Task<IActionResult> ActivateUser(int UserId)
         {
-            bool result = await adminProfileService.ActivateUser(UserId);
+            bool result = await adminService.ActivateUser(UserId);
             if (!result) return BadRequest(ApiResponse.ErrorResponse("User does not exist or is already active", null));
             return Ok(ApiResponse.SuccessResponse("User successfully activated", null));
         }
         [HttpPost("Deactivate-User")]
-        public async Task<IActionResult> DeActivateUser(Guid UserId)
+        public async Task<IActionResult> DeActivateUser(int UserId)
         {
-            bool  result = await adminProfileService.DeActivateUser(UserId);
+            bool  result = await adminService.DeActivateUser(UserId);
             if (!result) return BadRequest(ApiResponse.ErrorResponse("User does not exist or is already inactive", null));
             return Ok(ApiResponse.SuccessResponse("User successfully deactivated", null));
+        }
+        [HttpPut("Order/Status")]
+        public async Task<IActionResult> UpdateOrderStatus(UpdateSellerOrderStatusFromAdminSideDto updateSellerOrderStatusFromAdminSide)
+        {
+            var result = await adminService.UpdateSellerOrderStatus(updateSellerOrderStatusFromAdminSide);
+            if (!result) return BadRequest(ApiResponse.ErrorResponse("Failed to update order status", null));
+            return Ok(ApiResponse.SuccessResponse("Order status successfully updated", null));
         }
     }
 }

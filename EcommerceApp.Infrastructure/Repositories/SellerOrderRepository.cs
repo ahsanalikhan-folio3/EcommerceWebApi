@@ -1,0 +1,58 @@
+﻿using EcommerceApp.Application.Interfaces.Orders;
+using EcommerceApp.Domain.Entities;
+using EcommerceApp.Infrastructure.Database;
+using Microsoft.EntityFrameworkCore;
+
+namespace EcommerceApp.Infrastructure.Repositories
+{
+    public class SellerOrderRepository : ISellerOrderRepository
+    {
+        private readonly ApplicationDbContext db;
+        public SellerOrderRepository(ApplicationDbContext db)
+        {
+            this.db = db;
+        }
+
+        // Check if order item exists by id
+        public async Task<bool> SellerOrderExistAsync (int SellerOrderId)
+        {
+            return await db.SellerOrders.AnyAsync(x => x.Id == SellerOrderId);
+        }
+
+        // Add multiple order items to the database
+        public async Task AddSellerOrders(ICollection<SellerOrder> SellerOrders)
+        {
+            await db.SellerOrders.AddRangeAsync(SellerOrders);
+        }
+
+        // Get order item by id
+        public Task<SellerOrder?> GetSellerOrdersById(int SellerOrderId)
+        {
+            return db.SellerOrders
+                .AsNoTracking()
+                .FirstOrDefaultAsync(oi => oi.Id == SellerOrderId);
+        }
+        // Get all order items by order id
+        public async Task<IEnumerable<SellerOrder>> GetSellerOrdersByOrderId(int orderId)
+        {
+            return await db.SellerOrders
+                .AsNoTracking()
+                .Where(oi => oi.OrderId == orderId)
+                .ToListAsync();
+        }
+        public async Task<bool> UpdateSellerOrderStatus(int SellerOrderId, OrderStatus status)
+        {
+            SellerOrder? order = await db.SellerOrders.FirstOrDefaultAsync(x => x.Id == SellerOrderId);
+            if (order is null)
+                return false;
+            order.Status = status;
+            return true;
+        }
+
+        public async Task<int?> GetProductId(int sellerOrderId)
+        {
+            var sellerOrder = await db.SellerOrders.FirstOrDefaultAsync(x => x.Id == sellerOrderId);
+            return sellerOrder?.ProductId;
+        }
+    }
+}

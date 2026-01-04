@@ -2,7 +2,8 @@
 {
     public class SellerProfile
     {
-        public Guid UserId { get; set; } // FK - ApplicationUsers Table
+        public int UserId { get; set; } // FK - ApplicationUsers Table
+        public required ApplicationUser User { get; set; } // FK - ApplicationUsers Table
         public required string Storename { get; set; }
         public required string City { get; set; }
         public required string State { get; set; }

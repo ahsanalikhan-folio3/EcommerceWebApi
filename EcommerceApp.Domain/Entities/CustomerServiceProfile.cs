@@ -2,7 +2,8 @@
 {
     public class CustomerServiceProfile
     {
-        public Guid UserId { get; set; } // (FK - ApplicationUsers Table)
-        public Guid SellerId { get; set; } // Seller that created this User
+        public int UserId { get; set; } // FK - ApplicationUsers Table
+        public required ApplicationUser User { get; set; } // FK - ApplicationUsers Table
+        public required SellerProfile SellerUser { get; set; } // FK - SellerProfile Table
     }
 }

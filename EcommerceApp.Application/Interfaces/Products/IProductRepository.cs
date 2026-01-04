@@ -4,11 +4,14 @@ namespace EcommerceApp.Application.Interfaces.Products
 {
     public interface IProductRepository
     {
-        public Task<bool> ProductExistsAsync(string ProductSlug);
-        public Task<List<Product>> GetAllProducts();
-        public Task<Product?> GetProductById(Guid Id);
-        public Task<Product> AddProduct(Product product);
-        public Task<bool> DeleteProductById(Guid Id);
-        public Product UpdateProduct(Product product);
+        Task<bool> ProductExistsAsync(string ProductSlug);
+        Task<bool> ProductBelongsToSellerAsync(int productId, int sellerId);
+        Task<List<Product>> GetAllProducts();
+        Task<List<Product>> GetAllSellerProducts(int sellerId);
+        Task<Product?> GetProductById(int Id);
+        Task<ICollection<Product>> GetProductByIds(ICollection<int> Ids);
+        Task<Product> AddProduct(Product product);
+        Task<bool> DeleteProductById(int Id);
+        Product UpdateProduct(Product product);
     }
 }

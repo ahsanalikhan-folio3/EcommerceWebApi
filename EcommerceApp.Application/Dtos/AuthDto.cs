@@ -16,7 +16,7 @@
     }
     public class ApplicationUserDto
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public required string Email { get; set; }
         public required string PhoneNumber { get; set; }
         public required string Role { get; set; }
@@ -25,8 +25,8 @@
 
     public class AdminProfileDto : RegisterUserDto 
     {
-        public Guid UserId { get; set; }
-        public Guid CreatedBy { get; set; }
+        public int UserId { get; set; }
+        public int CreatedBy { get; set; }
     }
     public class CustomerProfileDto : RegisterUserDto 
     {

@@ -1,4 +1,7 @@
-﻿using EcommerceApp.Application.Dtos;
+﻿using EcommerceApp.Application.Common;
+using EcommerceApp.Application.Dtos;
+using EcommerceApp.Application.Interfaces.Orders;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EcommerceApp.Api.Controllers
@@ -7,10 +10,19 @@ namespace EcommerceApp.Api.Controllers
     [ApiController]
     public class OrdersController : ControllerBase
     {
-        [HttpPost]
-        public Task<IActionResult> CreateOrder (OrderDto order)
+        private readonly IOrderService orderService;
+        public OrdersController(IOrderService orderService)
         {
-            throw new NotImplementedException();
+            this.orderService = orderService;
+        }
+
+        [Authorize(Roles = AppRoles.Customer)]
+        [HttpPost]
+        public async Task<IActionResult> CreateOrder (OrderDto order)
+        {
+            var result = await orderService.CreateOrderAsync(order);
+            if (!result) return BadRequest(ApiResponse.ErrorResponse("Order creation failed.", null));
+            return Ok(ApiResponse.SuccessResponse("Order created.", null));
         }
     }
 }

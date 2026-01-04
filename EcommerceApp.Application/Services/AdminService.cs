@@ -16,14 +16,27 @@ namespace EcommerceApp.Application.Services
             this.mapper = mapper;
         }
 
-        public async Task<bool> ActivateUser(Guid userId)
+        public async Task<bool> ActivateUser(int userId)
         {
             var result = await uow.Admins.ActivateUserAsync(userId);
             if (!result) return result;
             await uow.SaveChangesAsync();
             return result;
         }
+        public async Task<bool> DeActivateUser(int userId)
+        {
+            var result = await uow.Admins.DeActivateUserAsync(userId);
+            if (!result) return result;
+            await uow.SaveChangesAsync();
+            return result;
+        }
 
+        public async Task<bool> UpdateSellerOrderStatus (UpdateSellerOrderStatusFromAdminSideDto updateSellerOrderStatusFromAdminSide)
+        {
+            var result = await uow.SellerOrders.UpdateSellerOrderStatus(updateSellerOrderStatusFromAdminSide.SellerOrderId, updateSellerOrderStatusFromAdminSide.Status);
+            await uow.SaveChangesAsync();
+            return result;
+        }
         //public async Task<bool> AddAdminProfile(AdminProfileDto adminProfile)
         //{
         //    bool userAlreadyExist = await uow.Auth.UserExistByIdAsync(adminProfile.UserId);
@@ -39,12 +52,5 @@ namespace EcommerceApp.Application.Services
         //    return true;
         //}
 
-        public async Task<bool> DeActivateUser(Guid userId)
-        {
-            var result = await uow.Admins.DeActivateUserAsync(userId);
-            if (!result) return result;
-            await uow.SaveChangesAsync();
-            return result;
-        }
     }
 }
