@@ -12,7 +12,7 @@ namespace EcommerceApp.Infrastructure.Database
         public DbSet<AdminProfile> AdminProfiles { get; set; }
         public DbSet<SellerProfile> SellerProfiles { get; set; }
         public DbSet<CustomerProfile> CustomerProfiles { get; set; }
-        public DbSet<CustomerServiceProfile> CustomerServiceProfiles { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) {}
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -22,51 +22,6 @@ namespace EcommerceApp.Infrastructure.Database
             // =====================================================
             // 1️. PROFILES → APPLICATION USER (1 : 1)
             // =====================================================
-
-            //modelBuilder.Entity<AdminProfile>()
-            //    .HasOne<ApplicationUser>()
-            //    .WithOne()
-            //    .HasForeignKey<AdminProfile>(x => x.UserId)
-            //    .OnDelete(DeleteBehavior.Restrict);
-            //modelBuilder.Entity<AdminProfile>().HasKey(x => x.UserId);
-
-            //modelBuilder.Entity<SellerProfile>()
-            //    .HasOne<ApplicationUser>()
-            //    .WithOne()
-            //    .HasForeignKey<SellerProfile>(x => x.UserId)
-            //    .OnDelete(DeleteBehavior.Restrict);
-            //modelBuilder.Entity<SellerProfile>().HasKey(x => x.UserId);
-            //modelBuilder.Entity<SellerProfile>()
-            //    .Property(x => x.Rating)
-            //    .HasPrecision(18, 2);
-
-            //modelBuilder.Entity<CustomerProfile>()
-            //    .HasOne<ApplicationUser>()
-            //    .WithOne()
-            //    .HasForeignKey<CustomerProfile>(x => x.UserId)
-            //    .OnDelete(DeleteBehavior.Restrict);
-            //modelBuilder.Entity<CustomerProfile>().HasKey(x => x.UserId);
-
-            //modelBuilder.Entity<CustomerServiceProfile>()
-            //    .HasOne<ApplicationUser>()
-            //    .WithOne()
-            //    .HasForeignKey<CustomerServiceProfile>(x => x.UserId)
-            //    .OnDelete(DeleteBehavior.Restrict);
-            //modelBuilder.Entity<CustomerServiceProfile>().HasKey(x => x.UserId);
-
-            //// 🔐 Ensure 1 profile per user
-            //modelBuilder.Entity<AdminProfile>()
-            //    .HasIndex(x => x.UserId).IsUnique();
-
-            //modelBuilder.Entity<SellerProfile>()
-            //    .HasIndex(x => x.UserId).IsUnique();
-
-            //modelBuilder.Entity<CustomerProfile>()
-            //    .HasIndex(x => x.UserId).IsUnique();
-
-            //modelBuilder.Entity<CustomerServiceProfile>()
-            //    .HasIndex(x => x.UserId).IsUnique();
-
 
             // AdminProfile
             modelBuilder.Entity<AdminProfile>()
@@ -94,14 +49,6 @@ namespace EcommerceApp.Infrastructure.Database
                 .HasForeignKey<CustomerProfile>(p => p.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<CustomerProfile>().HasKey(p => p.UserId);
-
-            // CustomerServiceProfile
-            modelBuilder.Entity<CustomerServiceProfile>()
-                .HasOne(p => p.User)
-                .WithOne()
-                .HasForeignKey<CustomerServiceProfile>(p => p.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<CustomerServiceProfile>().HasKey(p => p.UserId);
 
             // =====================================================
             // 2️. CUSTOMER → ORDERS (1 : MANY)
@@ -166,6 +113,32 @@ namespace EcommerceApp.Infrastructure.Database
             // Prevent duplicate product in same order
             modelBuilder.Entity<SellerOrder>()
                 .HasIndex(x => new { x.OrderId, x.ProductId })
+                .IsUnique();
+
+            // Feedback → Customer
+            modelBuilder.Entity<Feedback>()
+                .HasOne(f => f.Customer)
+                .WithMany()
+                .HasForeignKey(f => f.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Feedback → Seller
+            modelBuilder.Entity<Feedback>()
+                .HasOne(f => f.Seller)
+                .WithMany()
+                .HasForeignKey(f => f.SellerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Feedback → SellerOrder
+            modelBuilder.Entity<Feedback>()
+                .HasOne(f => f.CorrespondingSellerOrder)
+                .WithMany()
+                .HasForeignKey(f => f.SellerOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Prevent duplicate feedback for same order
+            modelBuilder.Entity<Feedback>()
+                .HasIndex(x => x.SellerOrderId)
                 .IsUnique();
         }
     }

@@ -17,10 +17,13 @@ namespace EcommerceApp.Infrastructure.Repositories
             var result = await db.CustomerProfiles.AddAsync(customerProfile);
             return (result is not null) ? true : false;
         }
-
         public async Task<bool> CustomerExistAsync(int UserId)
         {
             return await db.CustomerProfiles.AnyAsync(c => c.UserId == UserId);
+        }
+        public async Task<CustomerProfile?> GetCustomerById (int id)
+        {
+            return await db.CustomerProfiles.FirstOrDefaultAsync(x => x.UserId == id);
         }
     }
 }

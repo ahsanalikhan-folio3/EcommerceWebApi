@@ -17,10 +17,13 @@ namespace EcommerceApp.Infrastructure.Repositories
             var result = await db.SellerProfiles.AddAsync(sellerProfile);
             return (result is not null) ? true : false;
         }
-
         public async Task<bool> SellerExistAsync(int UserId)
         {
             return await db.SellerProfiles.AnyAsync(c => c.UserId == UserId);
+        }
+        public async Task<SellerProfile?> GetSellerById(int id)
+        {
+            return await db.SellerProfiles.FirstOrDefaultAsync(x => x.UserId == id);
         }
     }
 }

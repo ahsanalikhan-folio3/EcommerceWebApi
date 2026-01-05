@@ -1,6 +1,7 @@
 ﻿using EcommerceApp.Application.Interfaces.Admins;
 using EcommerceApp.Application.Interfaces.Auth;
 using EcommerceApp.Application.Interfaces.Customers;
+using EcommerceApp.Application.Interfaces.Feedbacks;
 using EcommerceApp.Application.Interfaces.Orders;
 using EcommerceApp.Application.Interfaces.Products;
 using EcommerceApp.Application.Interfaces.Sellers;
@@ -16,6 +17,7 @@ namespace EcommerceApp.Application.Interfaces
         public ISellerRepository Sellers { get; set; }
         public ISellerOrderRepository SellerOrders { get; set; }
         public IOrderRepository Orders { get; set; }
+        public IFeedbackRepository Feedbacks { get; set; }
         public Task SaveChangesAsync();
     }
 }

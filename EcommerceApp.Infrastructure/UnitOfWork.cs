@@ -2,6 +2,7 @@
 using EcommerceApp.Application.Interfaces.Admins;
 using EcommerceApp.Application.Interfaces.Auth;
 using EcommerceApp.Application.Interfaces.Customers;
+using EcommerceApp.Application.Interfaces.Feedbacks;
 using EcommerceApp.Application.Interfaces.Orders;
 using EcommerceApp.Application.Interfaces.Products;
 using EcommerceApp.Application.Interfaces.Sellers;
@@ -18,11 +19,12 @@ namespace EcommerceApp.Infrastructure
         public IAdminRepository Admins  { get; set; }
         public ISellerOrderRepository SellerOrders  { get; set; }
         public IOrderRepository Orders  { get; set; }
+        public IFeedbackRepository Feedbacks { get; set; }
         private readonly ApplicationDbContext db;
         public UnitOfWork(ApplicationDbContext db, IProductRepository Products, IAuthRepository Auth, 
             ICustomerRepository Customers, ISellerRepository Sellers, 
             IAdminRepository Admins, ISellerOrderRepository SellerOrders,
-            IOrderRepository Orders)
+            IOrderRepository Orders, IFeedbackRepository Feedbacks)
         {
             this.Products = Products;
             this.Auth = Auth;
@@ -32,6 +34,7 @@ namespace EcommerceApp.Infrastructure
             this.db = db;
             this.SellerOrders = SellerOrders;
             this.Orders = Orders;
+            this.Feedbacks = Feedbacks;
         }
         public async Task SaveChangesAsync()
         {

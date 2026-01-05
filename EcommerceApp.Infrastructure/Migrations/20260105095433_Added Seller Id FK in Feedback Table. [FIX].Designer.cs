@@ -4,6 +4,7 @@ using EcommerceApp.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcommerceApp.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260105095433_Added Seller Id FK in Feedback Table. [FIX]")]
+    partial class AddedSellerIdFKinFeedbackTableFIX
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -110,6 +113,21 @@ namespace EcommerceApp.Infrastructure.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("CustomerProfiles");
+                });
+
+            modelBuilder.Entity("EcommerceApp.Domain.Entities.CustomerServiceProfile", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SellerUserUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("SellerUserUserId");
+
+                    b.ToTable("CustomerServiceProfiles");
                 });
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.Feedback", b =>
@@ -311,6 +329,25 @@ namespace EcommerceApp.Infrastructure.Migrations
                         .HasForeignKey("EcommerceApp.Domain.Entities.CustomerProfile", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EcommerceApp.Domain.Entities.CustomerServiceProfile", b =>
+                {
+                    b.HasOne("EcommerceApp.Domain.Entities.SellerProfile", "SellerUser")
+                        .WithMany()
+                        .HasForeignKey("SellerUserUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", "User")
+                        .WithOne()
+                        .HasForeignKey("EcommerceApp.Domain.Entities.CustomerServiceProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SellerUser");
 
                     b.Navigation("User");
                 });

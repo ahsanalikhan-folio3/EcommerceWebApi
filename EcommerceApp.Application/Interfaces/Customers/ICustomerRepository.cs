@@ -6,5 +6,6 @@ namespace EcommerceApp.Application.Interfaces.Customers
     {
         Task<bool> CustomerExistAsync(int UserId);
         Task<bool> AddCustomerProfile(CustomerProfile customerProfile);
+        Task<CustomerProfile?> GetCustomerById(int id);
     }
 }

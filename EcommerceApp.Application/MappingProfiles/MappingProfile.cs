@@ -36,6 +36,9 @@ namespace EcommerceApp.Application.MappingProfiles
 
             // Order Mappings
             CreateMap<Order, OrderDto>().ReverseMap();
+
+            // Feedback Mappings
+            CreateMap<Feedback, FeedbackDto>().ReverseMap();
         }
     }
 }

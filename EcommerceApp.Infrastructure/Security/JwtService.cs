@@ -32,7 +32,7 @@ namespace EcommerceApp.Infrastructure.Security
                 issuer: jwt.Issuer,
                 audience: jwt.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddSeconds(jwt.AccessTokenExpirySeconds * 60 * 4), // 60 * 4 minutes
+                expires: DateTime.UtcNow.AddSeconds(jwt.AccessTokenExpirySeconds * 60 * 24 * 365), // 365 Days
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

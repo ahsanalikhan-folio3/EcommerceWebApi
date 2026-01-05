@@ -10,9 +10,12 @@ Seller Cases:
 -> Seller is able to login.
 -> Seller is able to add products.
 -> Seller is able to update order status to either pending or processing only.
+-> Seller ratings are updated once Customer submits feedbacks for orders.
 
 Customer Cases:
 ===============
 -> Customer is able to register. [direct register]
 -> Customer is able to login.
 -> Customer is able to place orders.
+-> Customer is able to cancel a SellerOrder [Only when the SellerOrder is in Pending state]
+-> Customer can submit feedbacks for his delivered order. [Non-editable]

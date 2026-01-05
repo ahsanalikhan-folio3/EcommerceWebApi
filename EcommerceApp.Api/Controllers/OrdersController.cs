@@ -24,5 +24,23 @@ namespace EcommerceApp.Api.Controllers
             if (!result) return BadRequest(ApiResponse.ErrorResponse("Order creation failed.", null));
             return Ok(ApiResponse.SuccessResponse("Order created.", null));
         }
+
+        [Authorize(Roles = AppRoles.Customer)]
+        [HttpPut("Cancel")]
+        public async Task<IActionResult> CancelOrder (CancelOrderDto cancelOrderDto)
+        {
+            var result = await orderService.CancelOrder(cancelOrderDto);
+            if (!result) return BadRequest(ApiResponse.ErrorResponse("Order cancellation failed.", null));
+            return Ok(ApiResponse.SuccessResponse("Order cancelled.", null));
+        }
+
+        [Authorize(Roles = AppRoles.Customer)]
+        [HttpPut("Feedback")]
+        public async Task<IActionResult> SubmitFeedback (FeedbackDto feedbackDto)
+        {
+            var result = await orderService.SubmitFeedback(feedbackDto);
+            if (!result) return BadRequest(ApiResponse.ErrorResponse("Feedback submission failed.", null));
+            return Ok(ApiResponse.SuccessResponse("Feedback submitted.", null));
+        }
     }
 }

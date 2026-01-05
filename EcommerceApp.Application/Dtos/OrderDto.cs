@@ -13,4 +13,8 @@ namespace EcommerceApp.Application.Dtos
         public required ICollection<SellerOrderDto> sellerOrders { get; set; }
         public int UserId { get; set; }
     }
+    public class CancelOrderDto
+    {
+        public int SellerOrderId { get; set; }
+    }
 }

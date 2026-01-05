@@ -6,5 +6,6 @@ namespace EcommerceApp.Application.Interfaces.Sellers
     {
         Task<bool> SellerExistAsync(int UserId);
         Task<bool> AddSellerProfile(SellerProfile sellerProfile);
+        Task<SellerProfile?> GetSellerById(int id);
     }
 }

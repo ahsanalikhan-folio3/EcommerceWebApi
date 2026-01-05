@@ -16,5 +16,9 @@ namespace EcommerceApp.Infrastructure.Repositories
             var result = await db.Orders.AddAsync(order);
             return result.Entity;
         }
+        public async Task<Order?> GetByIdAsync(int orderId)
+        {
+            return await db.Orders.FindAsync(orderId);
+        }
     }
 }

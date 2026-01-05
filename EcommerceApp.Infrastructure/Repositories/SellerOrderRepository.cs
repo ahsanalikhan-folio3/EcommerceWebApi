@@ -29,7 +29,6 @@ namespace EcommerceApp.Infrastructure.Repositories
         public Task<SellerOrder?> GetSellerOrdersById(int SellerOrderId)
         {
             return db.SellerOrders
-                .AsNoTracking()
                 .FirstOrDefaultAsync(oi => oi.Id == SellerOrderId);
         }
         // Get all order items by order id
@@ -48,7 +47,6 @@ namespace EcommerceApp.Infrastructure.Repositories
             order.Status = status;
             return true;
         }
-
         public async Task<int?> GetProductId(int sellerOrderId)
         {
             var sellerOrder = await db.SellerOrders.FirstOrDefaultAsync(x => x.Id == sellerOrderId);

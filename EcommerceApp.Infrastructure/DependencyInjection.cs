@@ -2,6 +2,7 @@
 using EcommerceApp.Application.Interfaces.Admins;
 using EcommerceApp.Application.Interfaces.Auth;
 using EcommerceApp.Application.Interfaces.Customers;
+using EcommerceApp.Application.Interfaces.Feedbacks;
 using EcommerceApp.Application.Interfaces.Orders;
 using EcommerceApp.Application.Interfaces.Products;
 using EcommerceApp.Application.Interfaces.Sellers;
@@ -30,6 +31,7 @@ namespace EcommerceApp.Infrastructure
             services.AddScoped<ISellerRepository, SellerRepository>(); 
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<ISellerOrderRepository, SellerOrderRepository>();
+            services.AddScoped<IFeedbackRepository, FeedbackRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<ICurrentUser, CurrentUser>();
