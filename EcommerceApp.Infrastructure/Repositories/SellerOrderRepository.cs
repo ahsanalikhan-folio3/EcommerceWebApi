@@ -52,5 +52,13 @@ namespace EcommerceApp.Infrastructure.Repositories
             var sellerOrder = await db.SellerOrders.FirstOrDefaultAsync(x => x.Id == sellerOrderId);
             return sellerOrder?.ProductId;
         }
+        public async Task<List<SellerOrder>> GetAllSellerOrdersOfProduct (int productId)
+        {
+            return await db.SellerOrders.Where(x => x.ProductId == productId).ToListAsync();
+        }
+        public async Task<List<SellerOrder>> GetAllSellerOrdersOfProductAlongWithProduct(int productId)
+        {
+            return await db.SellerOrders.Include(e => e.OrderedProduct).Where(e => e.ProductId == productId).ToListAsync();
+        }
     }
 }

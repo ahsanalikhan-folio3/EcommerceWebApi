@@ -10,5 +10,7 @@ namespace EcommerceApp.Application.Interfaces.Orders
         Task<IEnumerable<SellerOrder>> GetSellerOrdersByOrderId(int orderId);
         Task<SellerOrder?> GetSellerOrdersById(int SellerOrderId);
         Task<bool> UpdateSellerOrderStatus(int SellerOrderId, OrderStatus status);
+        Task<List<SellerOrder>> GetAllSellerOrdersOfProduct(int productId);
+        Task<List<SellerOrder>> GetAllSellerOrdersOfProductAlongWithProduct(int productId);
     }
 }

@@ -33,12 +33,14 @@ namespace EcommerceApp.Application.MappingProfiles
 
             // SellerOrder Mappings
             CreateMap<SellerOrder, SellerOrderDto>().ReverseMap();
+            CreateMap<SellerOrder, GetSellerOrderDto>().ReverseMap();
 
             // Order Mappings
             CreateMap<Order, OrderDto>().ReverseMap();
 
             // Feedback Mappings
             CreateMap<Feedback, FeedbackDto>().ReverseMap();
+            CreateMap<Feedback, GetFeedbackDto>().ReverseMap();
         }
     }
 }

@@ -16,5 +16,12 @@ namespace EcommerceApp.Application.Dtos
         public int SellerOrderId { get; set; }
         public OrderStatus Status { get; set; }
     }
-
+    public class GetSellerOrderDto
+    {
+        public int Id { get; set; }
+        public int OrderId { get; set; }
+        public required GetProductDto OrderedProduct { get; set; }
+        public int Quantity { get; set; }
+        public OrderStatus Status { get; set; }
+    }
 }

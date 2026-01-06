@@ -18,6 +18,11 @@ namespace EcommerceApp.Application.Services
             this.mapper = mapper;
             this.user = user;
         }
+        public async Task<bool> ProductBelongsToUserAsync (int productId)
+        {
+            var product = await uow.Products.GetProductById(productId);
+            return (product?.SellerId == user.GetUserIdInt()) ?  true : false;
+        }
         public async Task<GetProductDto?> AddProduct(ProductDto product)
         {
             string productSlug = product.ProductSlug;
@@ -56,6 +61,46 @@ namespace EcommerceApp.Application.Services
             int sellerId = user.GetUserIdInt();
             var products = await uow.Products.GetAllSellerProducts(sellerId);
             return mapper.Map<List<GetProductDto>>(products);
+        }
+
+        public async Task<List<GetFeedbackDto>> GetProductFeedbacks(int productId)
+        {
+            if (productId <= 0) return new List<GetFeedbackDto>();
+
+            int sellerId = user.GetUserIdInt();
+
+            var allFeedbacksOfSeller =
+                await uow.Feedbacks.GetAllFeedbacksOfSeller(sellerId);
+
+            var allOrdersOfProduct =
+                await uow.SellerOrders.GetAllSellerOrdersOfProduct(productId);
+
+            var productOrderIds = allOrdersOfProduct
+                .Select(o => o.Id)
+                .ToHashSet();
+
+            var requiredFeedbacks = allFeedbacksOfSeller
+                .Where(f => productOrderIds.Contains(f.SellerOrderId))
+                .Select(f => mapper.Map<GetFeedbackDto>(f))
+                .ToList();
+
+            return requiredFeedbacks;
+        }
+        public async Task<List<GetSellerOrderDto>> GetProductOrders(int productId)
+        {
+            if (productId <= 0) return new List<GetSellerOrderDto>();
+
+            var allSellerOrdersOfProduct = await uow.SellerOrders.GetAllSellerOrdersOfProductAlongWithProduct(productId);
+            return mapper.Map<List<GetSellerOrderDto>>(allSellerOrdersOfProduct);
+        }
+        public async Task<List<GetSellerOrderDto>> GetProductOrdersByStatus(int productId, OrderStatus status)
+        {
+            if (productId <= 0) return new List<GetSellerOrderDto>();
+
+            var allSellerOrdersOfProduct = await uow.SellerOrders.GetAllSellerOrdersOfProductAlongWithProduct(productId);
+            var filteredOrders = allSellerOrdersOfProduct.Where(x => x.Status == status).ToList();
+
+            return mapper.Map<List<GetSellerOrderDto>>(filteredOrders);
         }
     }
 }

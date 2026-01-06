@@ -9,8 +9,12 @@ Seller Cases:
 -> Seller is able to register. [requires admin approval]
 -> Seller is able to login.
 -> Seller is able to add products.
+-> Seller is able to update a product.
 -> Seller is able to update order status to either pending or processing only.
 -> Seller ratings are updated once Customer submits feedbacks for orders.
+-> Seller can see the all the feedbacks of products that were ordered. [Users will be anonymized.]
+-> Seller can see the all the orders of products.
+-> Seller can see the all the orders of products by status.
 
 Customer Cases:
 ===============
