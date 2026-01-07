@@ -21,24 +21,31 @@ namespace EcommerceApp.Application.Services
             this.jwtService = jwtService;
             this.passwordHasher = new PasswordHasher<ApplicationUser>();
         }
-        public async Task<string?> LoginUser(LoginDto user)
+        public async Task<bool> UserExistAsync (string email)
         {
-            // User must exist.
-            if (!(await uow.Auth.UserExistByEmailAsync(user.Email))) return "Does not exist.";
-            // User must be active.
-            if (!(await uow.Auth.UserActiveAsync(user.Email))) return "InActive.";
-
+            return await uow.Auth.UserExistByEmailAsync(email);
+        }
+        public async Task<bool> UserIsActiveAsync (string email)
+        {
+            var user = await uow.Auth.GetUserByEmailAsync(email);
+            return  user!.IsActive;
+        }
+        public async Task<bool> ValidatePassword (LoginDto user)
+        {
+            ApplicationUser appUser = (await uow.Auth.GetUserByEmailAsync(user.Email))!;
+            var comparisionResult = passwordHasher.VerifyHashedPassword(appUser, appUser.HashedPassword, user.Password);
+            return (comparisionResult == PasswordVerificationResult.Success);
+        }
+        public async Task<GetLoginResultDto> LoginUser(LoginDto user)
+        {
             ApplicationUser appUser = (await uow.Auth.GetUserByEmailAsync(user.Email))!;
 
-            // Comparing password.
-            var comparisionResult = passwordHasher.VerifyHashedPassword(appUser, appUser.HashedPassword, user.Password);
-            if (comparisionResult != PasswordVerificationResult.Success) return "Invalid Password.";
+            string token = jwtService.GenerateToken(appUser);
 
-            string jwtToken = jwtService.GenerateToken(appUser);
+            var result = new GetLoginResultDto() { Role = appUser.Role, Token = token};
 
-            return $"You are a {appUser.Role} on my Ecommerce Website and your JwtToken is {jwtToken}";
+            return result;
         }
-
         private async Task<ApplicationUser?> RegisterUser(RegisterUserDto user)
         {
             // If user exist return false ( can not add the user ).
@@ -54,7 +61,6 @@ namespace EcommerceApp.Application.Services
 
             return result;
         }
-
         public async Task<GetCustomerProfileDto?> RegisterCustomer(CustomerProfileDto customer)
         {
             RegisterUserDto appUserTableEntry = mapper.Map<RegisterUserDto>(customer);

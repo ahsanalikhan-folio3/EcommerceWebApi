@@ -1,10 +1,12 @@
 ﻿using EcommerceApp.Application.Common;
 using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Interfaces.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EcommerceApp.Api.Controllers
 {
+    [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -42,8 +44,20 @@ namespace EcommerceApp.Api.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> LoginUser (LoginDto user)
         {
+            // User must exist
+            var userExists = await authService.UserExistAsync(user.Email);
+            if (!userExists) return BadRequest(ApiResponse.ErrorResponse("User does not exist.", null));
+
+            // User must be active
+            var isActive = await authService.UserIsActiveAsync(user.Email);
+            if (!isActive) return BadRequest(ApiResponse.ErrorResponse("User is deactivated.", null));
+
+            // Password must be correct
+            var isPasswordCorrect = await authService.ValidatePassword(user);
+            if (!isPasswordCorrect) return BadRequest(ApiResponse.ErrorResponse("Invalid password.", null));
+
             var result = await authService.LoginUser(user);
-            return Ok(result);
+            return Ok(ApiResponse.SuccessResponse("User successfully logged in.", result));
         }
     }
 }

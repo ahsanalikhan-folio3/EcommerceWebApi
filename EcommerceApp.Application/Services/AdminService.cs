@@ -15,7 +15,6 @@ namespace EcommerceApp.Application.Services
             this.uow = uow;
             this.mapper = mapper;
         }
-
         public async Task<bool> ActivateUser(int userId)
         {
             var result = await uow.Admins.ActivateUserAsync(userId);
@@ -30,12 +29,21 @@ namespace EcommerceApp.Application.Services
             await uow.SaveChangesAsync();
             return result;
         }
-
         public async Task<bool> UpdateSellerOrderStatus (UpdateSellerOrderStatusFromAdminSideDto updateSellerOrderStatusFromAdminSide)
         {
             var result = await uow.SellerOrders.UpdateSellerOrderStatus(updateSellerOrderStatusFromAdminSide.SellerOrderId, updateSellerOrderStatusFromAdminSide.Status);
             await uow.SaveChangesAsync();
             return result;
+        }
+        public async Task<List<GetSellerOrderDto>> GetAllSellerOrders ()
+        {
+            var allSellerOrders = await uow.SellerOrders.GetAllSellerOrders();
+            return mapper.Map<List<GetSellerOrderDto>>(allSellerOrders);
+        }
+        public async Task<List<GetSellerOrderDto>> GetAllSellerOrdersByStatus(OrderStatus status)
+        {
+            var allSellerOrders = await this.GetAllSellerOrders();
+            return allSellerOrders.Where(so => so.Status == status).ToList();
         }
         //public async Task<bool> AddAdminProfile(AdminProfileDto adminProfile)
         //{

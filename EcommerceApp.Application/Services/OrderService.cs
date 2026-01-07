@@ -20,7 +20,7 @@ namespace EcommerceApp.Application.Services
         }
         public async Task<bool> CreateOrderAsync(OrderDto order)
         {
-            if (order == null || order.sellerOrders == null || !order.sellerOrders.Any())
+            if (order == null || order.SellerOrders == null || !order.SellerOrders.Any())
                 return false;
            
             /*
@@ -32,7 +32,7 @@ namespace EcommerceApp.Application.Services
             mappedOrder.TotalAmount = 0;
 
             // Fetch all products in one call for efficiency
-            var productIds = order.sellerOrders.Select(p => p.ProductId).ToList();
+            var productIds = order.SellerOrders.Select(p => p.ProductId).ToList();
             var dbProducts = await uow.Products.GetProductByIds(productIds);
             var productDict = dbProducts.ToDictionary(p => p.Id);
 
@@ -114,6 +114,23 @@ namespace EcommerceApp.Application.Services
 
             return true;
         }
+        public async Task<IEnumerable<GetSellerOrderDto>> GetCustomerOrders()
+        {
+            int userId = user.GetUserIdInt();
 
+            var allUserOrders =
+                await uow.Orders.GetAllOrdersOfUserByIdAsync(userId);
+
+            // Flattening SellerOrders
+            var sellerOrders = allUserOrders
+                .SelectMany(o => o.SellerOrders);
+
+            return mapper.Map<IEnumerable<GetSellerOrderDto>>(sellerOrders);
+        }
+        public async Task<IEnumerable<GetSellerOrderDto>> GetCustomerOrdersByStatus(OrderStatus status)
+        {
+            var allOrders = await GetCustomerOrders();
+            return allOrders.Where(o => o.Status == status);
+        }
     }
 }

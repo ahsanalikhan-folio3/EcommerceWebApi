@@ -5,9 +5,12 @@ namespace EcommerceApp.Application.Interfaces.Auth
     public interface IAuthService
     {
         //public Task<ApplicationUserDto?> RegisterUser(RegisterUserDto user);
-        public Task<GetAdminProfileDto?> RegisterAdmin(AdminProfileDto customer);
-        public Task<GetCustomerProfileDto?> RegisterCustomer(CustomerProfileDto customer);
-        public Task<GetSellerProfileDto?> RegisterSeller(SellerProfileDto customer);
-        public Task<string?> LoginUser(LoginDto user);
+        Task<GetAdminProfileDto?> RegisterAdmin(AdminProfileDto customer);
+        Task<GetCustomerProfileDto?> RegisterCustomer(CustomerProfileDto customer);
+        Task<GetSellerProfileDto?> RegisterSeller(SellerProfileDto customer);
+        Task<bool> UserExistAsync(string email);
+        Task<bool> UserIsActiveAsync(string email);
+        Task<bool> ValidatePassword(LoginDto user);
+        Task<GetLoginResultDto> LoginUser(LoginDto user);
     }
 }

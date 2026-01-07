@@ -1,6 +1,7 @@
 ﻿using EcommerceApp.Application.Common;
 using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Interfaces.Orders;
+using EcommerceApp.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,7 +16,21 @@ namespace EcommerceApp.Api.Controllers
         {
             this.orderService = orderService;
         }
+        [Authorize(Roles = AppRoles.Customer)]
+        [HttpGet]
+        public async Task<IActionResult> GetCustomerOrders([FromQuery] OrderStatus? status)
+        {
+            if (status is null)
+            {
+                var result = await orderService.GetCustomerOrders();
+                if (result.Count() == 0) return NotFound(ApiResponse.ErrorResponse("No orders found.", null));
+                return Ok(ApiResponse.SuccessResponse("Orders fetched successfully.", result));
+            }
 
+            var filteredResult = await orderService.GetCustomerOrdersByStatus((OrderStatus) status);
+            if (filteredResult.Count() == 0) return NotFound(ApiResponse.ErrorResponse("No filtered orders found.", null));
+            return Ok(ApiResponse.SuccessResponse("Filtered orders fetched successfully.", filteredResult));
+        }
         [Authorize(Roles = AppRoles.Customer)]
         [HttpPost]
         public async Task<IActionResult> CreateOrder (OrderDto order)

@@ -7,5 +7,6 @@ namespace EcommerceApp.Application.Interfaces.Orders
     {
         Task<Order> CreateOrderAsync(Order order);
         Task<Order?> GetByIdAsync(int orderId);
+        Task<List<Order>> GetAllOrdersOfUserByIdAsync(int userId);
     }
 }

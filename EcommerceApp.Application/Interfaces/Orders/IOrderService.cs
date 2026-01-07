@@ -8,5 +8,7 @@ namespace EcommerceApp.Application.Interfaces.Orders
         Task<bool> CreateOrderAsync(OrderDto orderItems);
         Task<bool> CancelOrder(CancelOrderDto cancelOrderDto);
         Task<bool> SubmitFeedback(FeedbackDto feedbackDto);
+        Task<IEnumerable<GetSellerOrderDto>> GetCustomerOrders();
+        Task<IEnumerable<GetSellerOrderDto>> GetCustomerOrdersByStatus(OrderStatus status);
     }
 }

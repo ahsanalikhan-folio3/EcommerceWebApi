@@ -14,6 +14,11 @@
         public required string Email { get; set; }
         public required string Password { get; set; }
     }
+    public class GetLoginResultDto
+    {
+        public required string Role { get; set; }
+        public required string Token { get; set; }
+    }
     public class ApplicationUserDto
     {
         public int Id { get; set; }

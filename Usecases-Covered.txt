@@ -3,6 +3,8 @@ Admin Cases:
 -> Admin is able to login.
 -> Admin is able to activate/deactiviate a user. [Deactivated user wont be able to login.]
 -> Admin is able to update order status to either inwarehouse, shippped or delivered only.
+-> Admin can see all the orders of the platform.
+-> Admin can see all the orders of the platform by status.
 
 Seller Cases:
 =============
@@ -13,8 +15,8 @@ Seller Cases:
 -> Seller is able to update order status to either pending or processing only.
 -> Seller ratings are updated once Customer submits feedbacks for orders.
 -> Seller can see the all the feedbacks of products that were ordered. [Users will be anonymized.]
--> Seller can see the all the orders of products.
--> Seller can see the all the orders of products by status.
+-> Seller can see the all the orders of their products.
+-> Seller can see the all the orders of their products by status.
 
 Customer Cases:
 ===============
@@ -23,3 +25,5 @@ Customer Cases:
 -> Customer is able to place orders.
 -> Customer is able to cancel a SellerOrder [Only when the SellerOrder is in Pending state]
 -> Customer can submit feedbacks for his delivered order. [Non-editable]
+-> Customer can view their SellerOrders.
+-> Customer can view their SellerOrders by status.

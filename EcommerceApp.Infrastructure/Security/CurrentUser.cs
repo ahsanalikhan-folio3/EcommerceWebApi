@@ -5,19 +5,10 @@ using System.Security.Claims;
 public class CurrentUser : ICurrentUser
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
-
     public CurrentUser(IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
-
-        Console.WriteLine("Claims: ");
-        foreach(var claim in _httpContextAccessor?.HttpContext?.User?.Claims)
-        {
-            if (claim is not null)
-                Console.WriteLine(claim.Type + ": " + claim.Value);
-        }
     }
-
     public string UserId =>
         _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
         ?? throw new UnauthorizedAccessException("UserId not found in JWT");

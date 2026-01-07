@@ -1,7 +1,9 @@
 ﻿using EcommerceApp.Application.Common;
 using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Interfaces.Admins;
+using EcommerceApp.Application.Interfaces.Orders;
 using EcommerceApp.Application.Services;
+using EcommerceApp.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,6 +46,20 @@ namespace EcommerceApp.Api.Controllers
             var result = await adminService.UpdateSellerOrderStatus(updateSellerOrderStatusFromAdminSide);
             if (!result) return BadRequest(ApiResponse.ErrorResponse("Failed to update order status", null));
             return Ok(ApiResponse.SuccessResponse("Order status successfully updated", null));
+        }
+        [HttpGet("Orders")]
+        public async Task<IActionResult> GetAllSellerOrders([FromQuery] OrderStatus? status)
+        {
+            if (status is null)
+            {
+                var result = await adminService.GetAllSellerOrders();
+                if (result.Count() == 0) return NotFound(ApiResponse.ErrorResponse("No orders found.", null));
+                return Ok(ApiResponse.SuccessResponse("Orders fetched successfully.", result));
+            }
+
+            var filteredResult = await adminService.GetAllSellerOrdersByStatus((OrderStatus)status);
+            if (filteredResult.Count() == 0) return NotFound(ApiResponse.ErrorResponse("No filtered orders found.", null));
+            return Ok(ApiResponse.SuccessResponse("Filtered orders fetched successfully.", filteredResult));
         }
     }
 }
