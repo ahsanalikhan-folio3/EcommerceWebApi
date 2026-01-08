@@ -9,6 +9,7 @@ namespace EcommerceApp.Application.Interfaces.Auth
         public Task<bool> UserActiveAsync(string email);
         public Task<string?> GetUserRoleAsync(string email);
         public Task<ApplicationUser?> GetUserByEmailAsync(string email);
+        public Task<ApplicationUser?> GetUserByIdAsync(int id);
         public Task<ApplicationUser> AddUser(ApplicationUser user);
     }
 }

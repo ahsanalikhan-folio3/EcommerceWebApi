@@ -1,3 +1,13 @@
+**-> Core REST Principle (important)**
+
+    Routes represent resources, not actions or roles
+
+    Resource → orders
+
+    Action → HTTP verb (POST, PATCH, DELETE)
+
+    Authorization → NOT in the URL
+
 **-> For Business level Authorization instead of bombarding ifs in controllers, you can create a simple Filter by implementing the IAsyncAuthorizationFilter interface and can use it like this on top of controller functions. This is efficient as we can reuse these filters as well.**
 
 

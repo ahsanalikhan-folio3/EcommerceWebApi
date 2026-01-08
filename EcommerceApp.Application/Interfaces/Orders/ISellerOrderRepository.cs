@@ -13,5 +13,7 @@ namespace EcommerceApp.Application.Interfaces.Orders
         Task<List<SellerOrder>> GetAllSellerOrdersOfProduct(int productId);
         Task<List<SellerOrder>> GetAllSellerOrdersOfProductAlongWithProduct(int productId);
         Task<List<SellerOrder>> GetAllSellerOrders();
+        Task<List<SellerOrder>> GetAllSellerOrdersOfSeller(int sellerId);
+        Task<List<SellerOrder>> GetAllSellerOrdersOfCustomer(int userId);
     }
 }

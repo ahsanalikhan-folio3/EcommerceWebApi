@@ -26,6 +26,12 @@ namespace EcommerceApp.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.Email == email);        
         }
 
+        public async Task<ApplicationUser?> GetUserByIdAsync(int id)
+        {
+            return await db.ApplicationUsers
+                .FirstOrDefaultAsync(x => x.Id == id);
+        }
+
         public async Task<string?> GetUserRoleAsync(string email)
         {
             return await db.ApplicationUsers

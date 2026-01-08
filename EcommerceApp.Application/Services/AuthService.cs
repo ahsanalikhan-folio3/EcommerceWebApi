@@ -21,7 +21,11 @@ namespace EcommerceApp.Application.Services
             this.jwtService = jwtService;
             this.passwordHasher = new PasswordHasher<ApplicationUser>();
         }
-        public async Task<bool> UserExistAsync (string email)
+        public async Task<bool> UserExistAsyncById (int id)
+        {
+            return await uow.Auth.UserExistByIdAsync(id);
+        }
+        public async Task<bool> UserExistAsyncByEmail (string email)
         {
             return await uow.Auth.UserExistByEmailAsync(email);
         }
@@ -45,6 +49,14 @@ namespace EcommerceApp.Application.Services
             var result = new GetLoginResultDto() { Role = appUser.Role, Token = token};
 
             return result;
+        }
+        public async Task<bool> ChangeUserActivationStatus (int id, UserActivationDto userActivationDto)
+        {
+            var user = await uow.Auth.GetUserByIdAsync(id);
+            user!.IsActive = userActivationDto.IsActive;
+            await uow.SaveChangesAsync();
+
+            return true;
         }
         private async Task<ApplicationUser?> RegisterUser(RegisterUserDto user)
         {
@@ -80,7 +92,6 @@ namespace EcommerceApp.Application.Services
             GetCustomerProfileDto mappedResult = mapper.Map<GetCustomerProfileDto>(customer);
             return mappedResult;
         }
-
         public async Task<GetAdminProfileDto?> RegisterAdmin(AdminProfileDto admin)
         {
             RegisterUserDto appUserTableEntry = mapper.Map<RegisterUserDto>(admin);

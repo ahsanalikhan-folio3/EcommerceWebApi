@@ -26,20 +26,6 @@ namespace EcommerceApp.Api.Controllers
         //    if (!result) return BadRequest(ApiResponse.ErrorResponse("Admin Profile already exists", null));
         //    return Ok(ApiResponse.SuccessResponse("Admin Profile successfully created", null));
         //}
-        [HttpPost("Activate-User")]
-        public async Task<IActionResult> ActivateUser(int UserId)
-        {
-            bool result = await adminService.ActivateUser(UserId);
-            if (!result) return BadRequest(ApiResponse.ErrorResponse("User does not exist or is already active", null));
-            return Ok(ApiResponse.SuccessResponse("User successfully activated", null));
-        }
-        [HttpPost("Deactivate-User")]
-        public async Task<IActionResult> DeActivateUser(int UserId)
-        {
-            bool  result = await adminService.DeActivateUser(UserId);
-            if (!result) return BadRequest(ApiResponse.ErrorResponse("User does not exist or is already inactive", null));
-            return Ok(ApiResponse.SuccessResponse("User successfully deactivated", null));
-        }
         [HttpPut("Order/Status")]
         public async Task<IActionResult> UpdateOrderStatus(UpdateSellerOrderStatusFromAdminSideDto updateSellerOrderStatusFromAdminSide)
         {

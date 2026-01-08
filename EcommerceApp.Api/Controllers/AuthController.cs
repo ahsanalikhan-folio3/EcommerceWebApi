@@ -1,12 +1,12 @@
 ﻿using EcommerceApp.Application.Common;
 using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Interfaces.Auth;
+using EcommerceApp.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EcommerceApp.Api.Controllers
 {
-    [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -24,7 +24,17 @@ namespace EcommerceApp.Api.Controllers
         //    if (result is null) return BadRequest(ApiResponse.ErrorResponse("User already exists.", null));
         //    return Ok(ApiResponse.SuccessResponse("User successfully added.", result));
         //}
+        [Authorize(Roles = AppRoles.Admin)]
+        [HttpPatch("Users/{id}")]
+        public async Task<IActionResult> ChangeUserActivationStatus(int id, [FromBody] UserActivationDto userActivationDto)
+        {
+            // User must exist
+            var userExists = await authService.UserExistAsyncById(id);
+            if (!userExists) return NotFound(ApiResponse.ErrorResponse("User does not exist.", null));
 
+            await authService.ChangeUserActivationStatus(id, userActivationDto);
+            return Ok(ApiResponse.SuccessResponse("User Activation status updated successfully.", null));
+        }
         [HttpPost("Register/Customer")]
         public async Task<IActionResult> RegisterCustomer (CustomerProfileDto user)
         {
@@ -45,8 +55,8 @@ namespace EcommerceApp.Api.Controllers
         public async Task<IActionResult> LoginUser (LoginDto user)
         {
             // User must exist
-            var userExists = await authService.UserExistAsync(user.Email);
-            if (!userExists) return BadRequest(ApiResponse.ErrorResponse("User does not exist.", null));
+            var userExists = await authService.UserExistAsyncByEmail(user.Email);
+            if (!userExists) return NotFound(ApiResponse.ErrorResponse("User does not exist.", null));
 
             // User must be active
             var isActive = await authService.UserIsActiveAsync(user.Email);

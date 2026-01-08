@@ -64,5 +64,13 @@ namespace EcommerceApp.Infrastructure.Repositories
         {
             return await db.SellerOrders.Include(e => e.OrderedProduct).ToListAsync();
         }
+        public async Task<List<SellerOrder>> GetAllSellerOrdersOfSeller (int sellerId)
+        {
+            return await db.SellerOrders.Include(p => p.OrderedProduct).Where(p => p.OrderedProduct.SellerId == sellerId).ToListAsync();
+        }
+        public async Task<List<SellerOrder>> GetAllSellerOrdersOfCustomer (int userId)
+        {
+            return await db.SellerOrders.Include(p => p.CorresponingOrder).Include(p => p.OrderedProduct).Where(p => p.CorresponingOrder.UserId == userId).ToListAsync();
+        }
     }
 }

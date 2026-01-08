@@ -114,22 +114,26 @@ namespace EcommerceApp.Application.Services
 
             return true;
         }
-        public async Task<IEnumerable<GetSellerOrderDto>> GetCustomerOrders()
+        public async Task<List<GetSellerOrderDto>> GetAllOrders()
         {
-            int userId = user.GetUserIdInt();
-
-            var allUserOrders =
-                await uow.Orders.GetAllOrdersOfUserByIdAsync(userId);
-
-            // Flattening SellerOrders
-            var sellerOrders = allUserOrders
-                .SelectMany(o => o.SellerOrders);
-
-            return mapper.Map<IEnumerable<GetSellerOrderDto>>(sellerOrders);
+            var allOrders = await uow.SellerOrders.GetAllSellerOrders();
+            return mapper.Map<List<GetSellerOrderDto>>(allOrders);
+        }
+        public async Task<IEnumerable<GetSellerOrderDto>> GetAllSellerOrdersOfSeller ()
+        {
+            int sellerId = user.GetUserIdInt();
+            var allSellerOrders = await uow.SellerOrders.GetAllSellerOrdersOfSeller(sellerId);
+            return mapper.Map<IEnumerable<GetSellerOrderDto>>(allSellerOrders);
+        }
+        public async Task<IEnumerable<GetSellerOrderDto>> GetAllCustomerOrders()
+        {
+            int customerId = user.GetUserIdInt();
+            var allCustomerOrders = await uow.SellerOrders.GetAllSellerOrdersOfCustomer(customerId);
+            return mapper.Map<IEnumerable<GetSellerOrderDto>>(allCustomerOrders);
         }
         public async Task<IEnumerable<GetSellerOrderDto>> GetCustomerOrdersByStatus(OrderStatus status)
         {
-            var allOrders = await GetCustomerOrders();
+            var allOrders = await GetAllCustomerOrders();
             return allOrders.Where(o => o.Status == status);
         }
     }

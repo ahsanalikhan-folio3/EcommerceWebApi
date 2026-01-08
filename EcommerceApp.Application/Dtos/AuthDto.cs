@@ -19,6 +19,10 @@
         public required string Role { get; set; }
         public required string Token { get; set; }
     }
+    public class  UserActivationDto 
+    {
+        public bool IsActive { get; set; }
+    }
     public class ApplicationUserDto
     {
         public int Id { get; set; }
