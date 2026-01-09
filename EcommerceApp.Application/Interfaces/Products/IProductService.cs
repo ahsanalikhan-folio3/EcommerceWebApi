@@ -4,10 +4,15 @@ namespace EcommerceApp.Application.Interfaces.Products
 {
     public interface IProductService
     {
-        public Task<List<GetProductDto>> GetAllProducts();
-        public Task<GetProductDto?> GetProductById(int Id);
-        //public Task<GetProductDto?> AddProduct(ProductDto Product);
-        public Task<GetProductDto?> UpdateProduct(int Id, ProductDto Product);
-        public Task<bool> DeleteProduct(int Id);
+        Task<List<GetProductDto>> GetAllProducts();
+        Task<List<GetFeedbackDto>?> GetProductFeedbacks(int productId);
+        Task<List<GetSellerOrderDto>?> GetProductOrders(int productId);
+        Task<List<GetProductDto>> GetAllSellerProducts();
+        Task<GetProductDto?> GetProductById(int Id);
+        Task<GetProductDto?> AddProduct(ProductDto Product);
+        Task<bool> ProductBelongsToSellerAsync(int productId);
+        Task<bool> ProductExistsAsync(int productId);
+        Task<GetProductDto?> UpdateProduct(int Id, ProductDto Product);
+        Task<bool> DeleteProduct(int Id);
     }
 }

@@ -2,7 +2,6 @@
 using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Interfaces.Orders;
 using EcommerceApp.Application.Interfaces.User;
-using EcommerceApp.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,7 +21,7 @@ namespace EcommerceApp.Api.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetOrders ()
+        public async Task<IActionResult> GetOrders()
         {
             // If user is Admin send all orders of web.
             if (user.IsInRole(AppRoles.Admin))
@@ -30,7 +29,7 @@ namespace EcommerceApp.Api.Controllers
                 var allOrders = await orderService.GetAllOrders();
                 return Ok(ApiResponse.SuccessResponse("Orders fetched successfully.", allOrders));
             }
-            
+
             // If user is Customer send his orders only.
             if (user.IsInRole(AppRoles.Customer))
             {
@@ -41,31 +40,16 @@ namespace EcommerceApp.Api.Controllers
             // If user is Seller send his orders only.
             if (user.IsInRole(AppRoles.Seller))
             {
-                var customerOrders = await orderService.GetAllSellerOrdersOfSeller();
-                return Ok(ApiResponse.SuccessResponse("Orders fetched successfully.", customerOrders));
+                var sellerOrders = await orderService.GetAllSellerOrdersOfSeller();
+                return Ok(ApiResponse.SuccessResponse("Orders fetched successfully.", sellerOrders));
             }
 
             return Forbid("Route Forbidden.");
         }
 
-        //[Authorize(Roles = AppRoles.Customer)]
-        //[HttpGet]
-        //public async Task<IActionResult> GetCustomerOrders([FromQuery] OrderStatus? status)
-        //{
-        //    if (status is null)
-        //    {
-        //        var result = await orderService.GetAllCustomerOrders();
-        //        if (result.Count() == 0) return NotFound(ApiResponse.ErrorResponse("No orders found.", null));
-        //        return Ok(ApiResponse.SuccessResponse("Orders fetched successfully.", result));
-        //    }
-
-        //    var filteredResult = await orderService.GetCustomerOrdersByStatus((OrderStatus) status);
-        //    if (filteredResult.Count() == 0) return NotFound(ApiResponse.ErrorResponse("No filtered orders found.", null));
-        //    return Ok(ApiResponse.SuccessResponse("Filtered orders fetched successfully.", filteredResult));
-        //}
         [Authorize(Roles = AppRoles.Customer)]
         [HttpPost]
-        public async Task<IActionResult> CreateOrder (OrderDto order)
+        public async Task<IActionResult> CreateOrder(OrderDto order)
         {
             var result = await orderService.CreateOrderAsync(order);
             if (!result) return BadRequest(ApiResponse.ErrorResponse("Order creation failed.", null));
@@ -73,21 +57,67 @@ namespace EcommerceApp.Api.Controllers
         }
 
         [Authorize(Roles = AppRoles.Customer)]
-        [HttpPut("Cancel")]
-        public async Task<IActionResult> CancelOrder (CancelOrderDto cancelOrderDto)
+        [HttpPost("{id}/Feedback")]
+        public async Task<IActionResult> SubmitFeedback(int id, FeedbackDto feedbackDto)
         {
-            var result = await orderService.CancelOrder(cancelOrderDto);
-            if (!result) return BadRequest(ApiResponse.ErrorResponse("Order cancellation failed.", null));
-            return Ok(ApiResponse.SuccessResponse("Order cancelled.", null));
-        }
+            // SellerOrder must exist
+            if (!(await orderService.SellerOrderExistAsync(id)))
+                return NotFound(ApiResponse.ErrorResponse("Order not found.", null));
 
-        [Authorize(Roles = AppRoles.Customer)]
-        [HttpPost("Feedback")]
-        public async Task<IActionResult> SubmitFeedback (FeedbackDto feedbackDto)
-        {
-            var result = await orderService.SubmitFeedback(feedbackDto);
+            // SellerOrder must belong to the customer
+            if (!(await orderService.SellerOrderBelongsToCustomer(id)))
+                return Unauthorized(ApiResponse.ErrorResponse("You are not authorized to access this resource.", null));
+
+            // SellerOrder status must be Delivered
+            if (!(await orderService.IsSellerOrderStatusDeliveredAsync(id)))
+                return BadRequest(ApiResponse.ErrorResponse("Feedback can only be given for orders that have been delivered.", null));
+
+            var result = await orderService.SubmitFeedback(id, feedbackDto);
             if (!result) return BadRequest(ApiResponse.ErrorResponse("Feedback submission failed.", null));
             return Ok(ApiResponse.SuccessResponse("Feedback submitted.", null));
+        }
+
+        [Authorize]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateSellerOrderStatus(int id, UpdateSellerOrderStatusDto updateSellerOrderStatusDto)
+        {
+            // SellerOrder must exist
+            if (!(await orderService.SellerOrderExistAsync(id)))
+                return NotFound(ApiResponse.ErrorResponse("Seller order not found.", null));
+
+            if (user.IsInRole(AppRoles.Seller))
+            {
+                // SellerOrder must belong to the seller
+                if (!(await orderService.SellerOrderBelongsToSeller(id)))
+                    return Unauthorized(ApiResponse.ErrorResponse("You are not authorized to access this resource.", null));
+
+                // Seller can only update status to Pending if it's currently Processing and vice versa.
+                var result = await orderService.UpdateSellerOrderStatusForSeller(id, updateSellerOrderStatusDto);
+                if (!result) return BadRequest(ApiResponse.ErrorResponse("Order status update failed.", null));
+                return Ok(ApiResponse.SuccessResponse("Order status updated.", null));
+            }
+            
+            if (user.IsInRole(AppRoles.Customer))
+            {
+                // SellerOrder must belong to the customer
+                if (!(await orderService.SellerOrderBelongsToCustomer(id)))
+                    return Unauthorized(ApiResponse.ErrorResponse("You are not authorized to update this order status.", null));
+
+                // Customer can only cancel the order
+                var result = await orderService.UpdateSellerOrderStatusForCustomer(id, updateSellerOrderStatusDto);
+                if (!result) return BadRequest(ApiResponse.ErrorResponse("Order status update failed.", null));
+                return Ok(ApiResponse.SuccessResponse("Order status updated.", null));
+            }
+
+            if (user.IsInRole(AppRoles.Admin))
+            {
+                // Admin can update any order to any status
+                var result = await orderService.UpdateSellerOrderStatusForAdmin(id, updateSellerOrderStatusDto);
+                if (!result) return BadRequest(ApiResponse.ErrorResponse("Order status update failed.", null));
+                return Ok(ApiResponse.SuccessResponse("Order status updated.", null));
+            }
+
+            return Forbid("Route Forbidden.");
         }
     }
 }

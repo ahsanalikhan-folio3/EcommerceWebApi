@@ -1,64 +1,67 @@
  Auth
 -------
 
-1- /api/auth/activate-user [POST]
-	This route can only be accessed by Admin.
-	This route activates a user in the platform.
-2- /api/auth/deactivate-user [POST]
-	This route can only be accessed by Admin.
-	This route deactivates a user from the platform.
-3- /api/auth/register/customer [POST]
-	This route can be accessed by any new user.
-	This route directly registers a customer on the platform.
-4- /api/auth/register/seller [POST]
-	This route can be accessed by any new user.
-	This route registers a seller on the platform whose account is in deactivated state first and awaits for admin approval.
-5- /api/auth/login [POST]
+1- /api/auth/login [POST] [[DONE]]
 	This route can be accessed by any user.	
 	This route logs in a user.
+2- /api/auth/user [PATCH] [[DONE]]
+	This route can only be accessed by Admin.
+	This route takes a isActive field in payload and updates user's activation status.
+3- /api/auth/register/customer [POST] [[DONE]]
+	This route can be accessed by any new user.
+	This route directly registers a customer on the platform.
+4- /api/auth/register/seller [POST] [[DONE]]
+	This route can be accessed by any new user.
+	This route registers a seller on the platform whose account is in deactivated state first and awaits for admin approval.
 
  Products
 ----------
 
-1- /api/products [GET]
+1- /api/products [GET] [[DONE]]
 	This route can be accessed by any authenticated user. But a Seller role will only get his products.
 	This route returns products of platform.
-2- /api/products [POST]
+2- /api/products [POST] [[DONE]]
 	This route can only be accessed by Seller role of the platform.
 	Seller post his products through this route.
-3- /api/products/{id} [GET]
+3- /api/products/{id} [GET] [[DONE]]
 	This route can be accessed by any authenticated user. But a Seller role will only get his products.
 	This route returns a specific product.
-4- /api/products/{id} [PUT]
+4- /api/products/{id} [PUT] [[DONE]]
 	This route can only be accessed by Seller role of the platform.
 	This route helps in updating a specific product.
-5- /api/products/{id} [DELETE]
+5- /api/products/{id} [DELETE] [[DONE]]
 	This route can only be accessed by Seller role of the platform.
 	This route helps in deleting a specific product.
-6- /api/products/{id}/feedbacks [GET]
+6- /api/products/{id}/feedbacks [GET] [[DONE]]
 	This route can only be accessed by Seller role of the platform.
 	This route returns feedbacks on a specific product.
-7- /api/products/{id}/orders [GET]
+7- /api/products/{id}/orders [GET] [[DONE]]
 	This route can only be accessed by Seller role of the platform.
 	This route returns orders of a specific product.
 
  Orders
 ----------
 
-1- /api/orders [GET]
+1- /api/orders [GET] [[DONE]]
 	This route can be accessed by:
 		Customer to view his orders.
 		Admin to view all platform orders.
 		Seller to view all their orders.
-2- /api/orders [POST]
+2- /api/orders [POST] [[DONE]]
 	This route can only be accessed by Customer role of the platform.
 	This route helps customer to post orders.
-3- /api/orders/{id}/cancel [POST]
-	This route can only be accessed by Customer role of the platform.
-	This route helps customer to cancel a order only if it is in pending state.
-4- /api/orders/{id}/feedback [POST]
+3- /api/orders/{id}/feedback [POST] [[DONE]]
 	This route can only be accessed by Customer role of the platform.
 	This route helps customer to post feedback on an order only if it is delivered.
-5- /api/orders/{id}/status [PUT]
-	This route can only be accessed by either Seller or Admin role of the platform.
-	This route helps seller to update the status of order to either pending or processing and helps admin to update the status of order to inwarehouse, shipped or delivered.
+4- /api/orders/{id}/status [PUT] [[DONE]]
+	This route can only be accessed by Customer, Seller or Admin role of the platform.
+	This route helps seller to update the status of order to either pending or processing and 
+	This route helps admin to update the status of order to any status.
+	This route helps customers to only cancel pending orders.
+
+ Removed:
+----------
+
+3- /api/orders/{id}/cancel [POST] [[DONE]]
+	This route can only be accessed by Customer role of the platform.
+	This route helps customer to cancel a order only if it is in pending state.

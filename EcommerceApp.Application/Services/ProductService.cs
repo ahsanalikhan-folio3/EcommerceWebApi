@@ -3,6 +3,7 @@ using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Exceptions;
 using EcommerceApp.Application.Interfaces;
 using EcommerceApp.Application.Interfaces.Products;
+using EcommerceApp.Application.Interfaces.User;
 using EcommerceApp.Domain.Entities;
 
 namespace EcommerceApp.Application.Services
@@ -10,26 +11,52 @@ namespace EcommerceApp.Application.Services
     public class ProductService : IProductService
     {
         private readonly IUnitOfWork uow;
+        private readonly ICurrentUser user;
         private readonly IMapper mapper;
-        public ProductService(IUnitOfWork uow, IMapper  mapper)
+        public ProductService(IUnitOfWork uow, IMapper mapper, ICurrentUser user)
         {
+            this.user = user;
             this.uow = uow;
             this.mapper = mapper;
         }
-        //public async Task<GetProductDto?> AddProduct(ProductDto product)
-        //{
-        //    string productSlug = product.ProductSlug;
-        //    bool doesProductExist = await uow.Products.ProductExistsAsync(productSlug);
-        //    if (doesProductExist) return null;
+        public async Task<bool> ProductBelongsToSellerAsync(int productId)
+        {
+            var product = await uow.Products.GetProductById(productId);
+            return (product?.SellerId == user.GetUserIdInt()) ? true : false;
+        }
+        public async Task<GetProductDto?> AddProduct(ProductDto product)
+        {
+            string productSlug = product.ProductSlug;
+            bool doesProductExist = await uow.Products.ProductExistsAsync(productSlug);
+            if (doesProductExist) return null;
 
-        //    Product NewProduct = mapper.Map<Product>(product);
-        //    NewProduct.CreatedAt = DateTime.UtcNow;
-        //    NewProduct.UpdatedAt= DateTime.UtcNow;
-        //    Product AddedProduct = await uow.Products.AddProduct(NewProduct);
-        //    await uow.SaveChangesAsync();
+            Product NewProduct = mapper.Map<Product>(product);
+            NewProduct.SellerId = user.GetUserIdInt();
+            NewProduct.CreatedAt = DateTime.UtcNow;
+            NewProduct.UpdatedAt = DateTime.UtcNow;
+            Product AddedProduct = await uow.Products.AddProduct(NewProduct);
+            await uow.SaveChangesAsync();
 
-        //    return mapper.Map<GetProductDto>(AddedProduct);
-        //}
+            return mapper.Map<GetProductDto>(AddedProduct);
+        }
+        public async Task<GetProductDto?> UpdateProduct(int productId, ProductDto product)
+        {
+            var dbProduct = await uow.Products.GetProductById(productId);
+            if (dbProduct is null) return null;
+
+            mapper.Map(product, dbProduct);
+
+            dbProduct.UpdatedAt = DateTime.UtcNow;
+            await uow.SaveChangesAsync();
+
+            return mapper.Map<GetProductDto>(dbProduct);
+        }
+        public async Task<List<GetProductDto>> GetAllSellerProducts()
+        {
+            int sellerId = user.GetUserIdInt();
+            var products = await uow.Products.GetAllSellerProducts(sellerId);
+            return mapper.Map<List<GetProductDto>>(products);
+        }
 
         public async Task<bool> DeleteProduct(int id)
         {
@@ -41,7 +68,6 @@ namespace EcommerceApp.Application.Services
 
             return result;
         }
-
         public async Task<List<GetProductDto>> GetAllProducts()
         {
             List<Product> products = await uow.Products.GetAllProducts();
@@ -54,16 +80,42 @@ namespace EcommerceApp.Application.Services
             return mapper.Map<GetProductDto>(product);
         }
 
-        public async Task<GetProductDto?> UpdateProduct(int id, ProductDto product)
+        public async Task<List<GetFeedbackDto>?> GetProductFeedbacks(int productId)
         {
-            Product? existingProduct = await uow.Products.GetProductById(id);
-            if (existingProduct is null) return null;
+            if (productId <= 0 || !await ProductExistsAsync(productId)) return null;
 
-            mapper.Map(product, existingProduct);
-            existingProduct.UpdatedAt = DateTime.UtcNow;
+            int sellerId = user.GetUserIdInt();
 
-            await uow.SaveChangesAsync();
-            return mapper.Map<GetProductDto>(existingProduct);
+            var allFeedbacksOfSeller =
+                await uow.Feedbacks.GetAllFeedbacksOfSeller(sellerId);
+
+            var allOrdersOfProduct =
+                await uow.SellerOrders.GetAllSellerOrdersOfProduct(productId);
+
+            var productOrderIds = allOrdersOfProduct
+                .Select(o => o.Id)
+                .ToHashSet();
+
+            var requiredFeedbacks = allFeedbacksOfSeller
+                .Where(f => productOrderIds.Contains(f.SellerOrderId))
+                .Select(f => mapper.Map<GetFeedbackDto>(f))
+                .ToList();
+
+            return requiredFeedbacks;
+        }
+
+        public async Task<List<GetSellerOrderDto>?> GetProductOrders(int productId)
+        {
+            if (productId <= 0 || !await ProductExistsAsync(productId)) return null;
+
+            var sellerOrders = await uow.SellerOrders.GetAllSellerOrdersOfProduct(productId);
+            return mapper.Map<List<GetSellerOrderDto>>(sellerOrders);
+        }
+
+        public async Task<bool> ProductExistsAsync(int productId)
+        {
+            var product = await uow.Products.GetProductById(productId);
+            return product is not null;
         }
     }
 }

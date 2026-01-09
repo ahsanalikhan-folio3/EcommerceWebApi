@@ -18,6 +18,11 @@ namespace EcommerceApp.Application.Services
             this.mapper = mapper;
             this.user = user;
         }
+        public async Task<bool> SellerOrderExistAsync (int sellerOrderId)
+        {
+            var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
+            return sellerOrder is not null;
+        }
         public async Task<bool> CreateOrderAsync(OrderDto order)
         {
             if (order == null || order.SellerOrders == null || !order.SellerOrders.Any())
@@ -62,31 +67,9 @@ namespace EcommerceApp.Application.Services
 
             return true;
         }
-        public async Task<bool> CancelOrder (CancelOrderDto cancelOrderDto)
+        public async Task<bool> SubmitFeedback(int sellerOrderId, FeedbackDto feedbackDto)
         {
-            var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(cancelOrderDto.SellerOrderId);
-            var parentOrder = await uow.Orders.GetByIdAsync(sellerOrder!.OrderId);
-            var product = await uow.Products.GetProductById(sellerOrder!.ProductId);
-
-            if (sellerOrder == null || parentOrder == null || product == null)
-                return false;
-
-            // Cancel the seller order
-            sellerOrder.Status = OrderStatus.Cancelled;
-            
-            // Update the parent order's total amount
-            parentOrder.TotalAmount -= sellerOrder.Quantity * product.Price;
-            
-            // Restock the product
-            product.StockQuantity += sellerOrder.Quantity;
-
-            await uow.SaveChangesAsync();
-
-            return true;
-        }
-        public async Task<bool> SubmitFeedback(FeedbackDto feedbackDto)
-        {
-            var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(feedbackDto.SellerOrderId);
+            var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
             if (sellerOrder == null) return false;
 
             var customer = await uow.Customers.GetCustomerById(user.GetUserIdInt());
@@ -135,6 +118,81 @@ namespace EcommerceApp.Application.Services
         {
             var allOrders = await GetAllCustomerOrders();
             return allOrders.Where(o => o.Status == status);
+        }
+        public async Task<bool> UpdateSellerOrderStatusForAdmin(int sellerOrderId, UpdateSellerOrderStatusDto updateSellerOrderStatusDto)
+        {
+            await uow.SellerOrders.UpdateSellerOrderStatus(sellerOrderId, updateSellerOrderStatusDto.Status);
+            await uow.SaveChangesAsync();
+
+            return true;
+        }
+        public async Task<bool> UpdateSellerOrderStatusForSeller(int sellerOrderId, UpdateSellerOrderStatusDto updateSellerOrderStatusDto)
+        {
+            var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
+            OrderStatus status = updateSellerOrderStatusDto.Status;
+
+            // If order is in pending state, seller can only update it to processing and vice versa.
+            if (
+                (sellerOrder!.Status == OrderStatus.Pending && status == OrderStatus.Processing) ||
+                (sellerOrder.Status == OrderStatus.Processing && status == OrderStatus.Pending)
+             )
+            {
+                await uow.SellerOrders.UpdateSellerOrderStatus(sellerOrderId, status);
+                await uow.SaveChangesAsync();
+
+                return true;
+            }
+
+            return false;
+        }
+        public async Task<bool> UpdateSellerOrderStatusForCustomer(int sellerOrderId, UpdateSellerOrderStatusDto updateSellerOrderStatusDto)
+        {
+            var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
+
+            // Customer can only cancel pending orders
+            if (sellerOrder!.Status != OrderStatus.Pending || updateSellerOrderStatusDto.Status != OrderStatus.Cancelled)    
+                return false;
+
+            var parentOrder = await uow.Orders.GetByIdAsync(sellerOrder!.OrderId);
+            var product = await uow.Products.GetProductById(sellerOrder!.ProductId);
+
+            if (sellerOrder == null || parentOrder == null || product == null)
+                return false;
+
+            // Cancel the seller order
+            sellerOrder.Status = OrderStatus.Cancelled;
+
+            // Update the parent order's total amount
+            parentOrder.TotalAmount -= sellerOrder.Quantity * product.Price;
+
+            // Restock the product
+            product.StockQuantity += sellerOrder.Quantity;
+
+            await uow.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> SellerOrderBelongsToCustomer(int sellerOrderId)
+        {
+            var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
+            if (sellerOrder == null) return false;
+            var order = await uow.Orders.GetByIdAsync(sellerOrder.OrderId);
+            return order is null || order.UserId == user.GetUserIdInt();
+        }
+
+        public async Task<bool> SellerOrderBelongsToSeller(int sellerOrderId)
+        {
+            var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
+            if (sellerOrder == null) return false;
+            var product = await uow.Products.GetProductById(sellerOrder.ProductId);
+            return product is null || product.SellerId == user.GetUserIdInt();
+        }
+
+        public async Task<bool> IsSellerOrderStatusDeliveredAsync(int sellerOrderId)
+        {
+            var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId); 
+            return sellerOrder != null && sellerOrder.Status == OrderStatus.Delivered;
         }
     }
 }
