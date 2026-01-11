@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
-builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("DbConnection")!);
+builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString(builder.Environment.IsDevelopment() ? "DbConnection" : "DbConnectionThroughDocker")!);
 builder.Services.AddApplication();
 builder.Services.AddControllers(options => { options.Filters.Add<ValidationFilter>(); });
 

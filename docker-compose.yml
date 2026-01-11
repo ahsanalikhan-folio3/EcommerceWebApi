@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "Strong!Pass123"
+    ports:
+      - "1433:1433"
+    volumes:
+      - ./sql-backup:/backup
+      - sqlserver-data:/var/opt/mssql
+      - ./init-db.sh:/init-db.sh
+    entrypoint: ["/bin/bash", "/init-db.sh"]
+    healthcheck:
+      test: ["CMD-SHELL", "grep -q \"SQL Server is now ready for client connections\" /var/opt/mssql/log/errorlog || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      - app-network
+
+  dbrestore:
+    image: mcr.microsoft.com/mssql-tools
+    container_name: dbrestore
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    volumes:
+      - ./sql-backup:/backup
+      - ./dbrestore.sh:/dbrestore.sh
+    entrypoint: ["bash", "/dbrestore.sh"]
+    restart: "no"
+    networks:
+      - app-network
+
+  webapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerceapi
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      dbrestore:
+        condition: service_completed_successfully
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Docker"
+      ConnectionStrings__DefaultConnection: >
+        Server=sqlserver,1433;
+        Database=EcommerceWebApiDb;
+        User Id=sa;
+        Password=Strong!Pass123;
+        TrustServerCertificate=True;
+    ports:
+      - "5000:80"
+    networks:
+      - app-network
+
+volumes:
+  sqlserver-data:
+
+networks:
+  app-network:
+    driver: bridge

@@ -21,12 +21,4 @@
         public required decimal Price { get; set; }
         public required bool IsAvailable { get; set; }
     }
-    public class UpdateProductStockDto 
-    {
-        public required int Stock { get; set; }
-    }
-    public class ChangeProductStockDto 
-    {
-        public required int Stock { get; set; }
-    }
 }

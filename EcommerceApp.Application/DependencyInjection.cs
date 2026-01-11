@@ -18,9 +18,6 @@ namespace EcommerceApp.Application
         {
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IAdminService, AdminService>();
-            services.AddScoped<ICustomerService, CustomerService>();
-            services.AddScoped<ISellerService, SellerService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());

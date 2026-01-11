@@ -11,9 +11,9 @@ namespace EcommerceApp.Application.Services
     public class ProductService : IProductService
     {
         private readonly IUnitOfWork uow;
-        private readonly ICurrentUser user;
+        private readonly IUserService user;
         private readonly IMapper mapper;
-        public ProductService(IUnitOfWork uow, IMapper mapper, ICurrentUser user)
+        public ProductService(IUnitOfWork uow, IMapper mapper, IUserService user)
         {
             this.user = user;
             this.uow = uow;

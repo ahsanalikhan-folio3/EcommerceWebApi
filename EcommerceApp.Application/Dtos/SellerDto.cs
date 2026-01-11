@@ -10,12 +10,6 @@ namespace EcommerceApp.Application.Dtos
     //    public required string PostalCode { get; set; }
     //    public required string Country { get; set; }
     //}
-
-    public class UpdateSellerOrderStatusFromSellerSideDto 
-    {
-        public int SellerOrderId { get; set; }
-        public OrderStatus Status { get; set; }
-    }
     public class GetSellerOrderDto
     {
         public int Id { get; set; }

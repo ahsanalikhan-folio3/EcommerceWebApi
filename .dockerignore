@@ -1,0 +1,16 @@
+**/bin/
+**/obj/
+**/*.user
+**/*.suo
+**/.vs/
+**/.vscode/
+*.DS_Store
+*.log
+.idea/
+./EcommerceApp.Infrastructure/Migrations/
+
+**/.nuget/
+
+.dockerignore
+
+.git

@@ -1,6 +1,4 @@
 ﻿using EcommerceApp.Application.Dtos;
-using EcommerceApp.Application.Interfaces;
-using EcommerceApp.Application.Interfaces.User;
 using FluentValidation;
 
 namespace EcommerceApp.Application.Validators

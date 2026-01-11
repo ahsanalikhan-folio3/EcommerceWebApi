@@ -1,7 +1,6 @@
 ﻿using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Interfaces;
 using EcommerceApp.Application.Interfaces.User;
-using EcommerceApp.Domain.Entities;
 using FluentValidation;
 
 namespace EcommerceApp.Application.Validators
@@ -9,8 +8,8 @@ namespace EcommerceApp.Application.Validators
     public class FeedbackValidator : AbstractValidator<FeedbackDto>
     {
         public readonly IUnitOfWork uow;
-        public readonly ICurrentUser user;
-        public FeedbackValidator(IUnitOfWork uow, ICurrentUser user)
+        public readonly IUserService user;
+        public FeedbackValidator(IUnitOfWork uow, IUserService user)
         {
             this.uow = uow;
             this.user = user;

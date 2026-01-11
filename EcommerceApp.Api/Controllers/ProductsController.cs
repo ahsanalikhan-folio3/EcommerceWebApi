@@ -12,8 +12,8 @@ namespace EcommerceApp.Api.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IProductService productService;
-        private readonly ICurrentUser user;
-        public ProductsController(IProductService productService, ICurrentUser user)
+        private readonly IUserService user;
+        public ProductsController(IProductService productService, IUserService user)
         {
             this.user = user;
             this.productService = productService;

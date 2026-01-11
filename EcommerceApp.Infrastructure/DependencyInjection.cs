@@ -34,7 +34,7 @@ namespace EcommerceApp.Infrastructure
             services.AddScoped<IFeedbackRepository, FeedbackRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IJwtService, JwtService>();
-            services.AddScoped<ICurrentUser, CurrentUser>();
+            services.AddScoped<IUserService, UserService>();
 
             return services;
         }

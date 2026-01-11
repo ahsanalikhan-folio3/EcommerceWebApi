@@ -12,8 +12,8 @@ namespace EcommerceApp.Api.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService orderService;
-        private readonly ICurrentUser user;
-        public OrdersController(IOrderService orderService, ICurrentUser user)
+        private readonly IUserService user;
+        public OrdersController(IOrderService orderService, IUserService user)
         {
             this.user = user;
             this.orderService = orderService;

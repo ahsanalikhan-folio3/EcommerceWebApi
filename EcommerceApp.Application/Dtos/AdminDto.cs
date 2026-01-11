@@ -6,9 +6,4 @@ namespace EcommerceApp.Application.Dtos
     //{
     //    public int UserId { get; set; }
     //}
-    public class UpdateSellerOrderStatusFromAdminSideDto
-    {
-        public int SellerOrderId { get; set; }
-        public OrderStatus Status { get; set; }
-    }
 }

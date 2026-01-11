@@ -1,6 +1,6 @@
 ﻿namespace EcommerceApp.Application.Interfaces.User
 {
-    public interface ICurrentUser
+    public interface IUserService
     {
         string? UserId { get; }
         string? Role { get; }

@@ -11,8 +11,8 @@ namespace EcommerceApp.Application.Services
     {
         private readonly IUnitOfWork uow;
         private readonly IMapper mapper;
-        private readonly ICurrentUser user;
-        public OrderService(IUnitOfWork uow, IMapper mapper, ICurrentUser user)
+        private readonly IUserService user;
+        public OrderService(IUnitOfWork uow, IMapper mapper, IUserService user)
         {
             this.uow = uow;
             this.mapper = mapper;

@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
-public class CurrentUser : ICurrentUser
+public class UserService : IUserService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
-    public CurrentUser(IHttpContextAccessor httpContextAccessor)
+    public UserService(IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
     }

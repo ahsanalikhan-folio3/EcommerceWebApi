@@ -32,12 +32,4 @@ namespace EcommerceApp.Application.Validators
                 .NotEmpty().WithMessage("Category is required");
         }
     }
-    public class UpdateProductStockDtoValidator : AbstractValidator<UpdateProductStockDto>
-    {
-        public UpdateProductStockDtoValidator()
-        {
-            RuleFor(x => x.Stock)
-                .GreaterThan(-1).WithMessage("Stock must be greater than or equal to 0.");
-        }
-    }
 }
