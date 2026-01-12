@@ -7,10 +7,13 @@
 2- /api/auth/user [PATCH] [[DONE]]
 	This route can only be accessed by Admin.
 	This route takes a isActive field in payload and updates user's activation status.
-3- /api/auth/register/customer [POST] [[DONE]]
+3- /api/auth/user/profile [GET] [[DONE]]
+	This route can only be accessed by authorized users.
+	This route takes a returns profile of a user.
+4- /api/auth/register/customer [POST] [[DONE]]
 	This route can be accessed by any new user.
 	This route directly registers a customer on the platform.
-4- /api/auth/register/seller [POST] [[DONE]]
+5- /api/auth/register/seller [POST] [[DONE]]
 	This route can be accessed by any new user.
 	This route registers a seller on the platform whose account is in deactivated state first and awaits for admin approval.
 

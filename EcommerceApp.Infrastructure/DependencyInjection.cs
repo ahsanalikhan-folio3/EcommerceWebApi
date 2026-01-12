@@ -1,23 +1,29 @@
-﻿using EcommerceApp.Application.Interfaces;
+﻿using EcommerceApp.Application.Common;
+using EcommerceApp.Application.Interfaces;
 using EcommerceApp.Application.Interfaces.Admins;
 using EcommerceApp.Application.Interfaces.Auth;
 using EcommerceApp.Application.Interfaces.Customers;
 using EcommerceApp.Application.Interfaces.Feedbacks;
+using EcommerceApp.Application.Interfaces.Jobs;
+using EcommerceApp.Application.Interfaces.JobServices;
 using EcommerceApp.Application.Interfaces.Orders;
 using EcommerceApp.Application.Interfaces.Products;
 using EcommerceApp.Application.Interfaces.Sellers;
 using EcommerceApp.Application.Interfaces.User;
 using EcommerceApp.Infrastructure.Database;
+using EcommerceApp.Infrastructure.Jobs;
+using EcommerceApp.Infrastructure.JobService;
 using EcommerceApp.Infrastructure.Repositories;
 using EcommerceApp.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EcommerceApp.Infrastructure
 {
     static public class DependencyInjection
     {
-        static public IServiceCollection AddInfrastructure (this IServiceCollection services, string dbConnectionString)
+        static public IServiceCollection AddInfrastructure (this IServiceCollection services, string dbConnectionString, IConfiguration configuration)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
             {
@@ -35,6 +41,11 @@ namespace EcommerceApp.Infrastructure
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IUserService, UserService>();
+
+            // Search what is perfect for a background job.
+            services.AddTransient<IEmailJob, EmailJob>();
+            services.AddTransient<IBackgroundJobService, HangfireBackgroundJobService>();
+            services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
 
             return services;
         }

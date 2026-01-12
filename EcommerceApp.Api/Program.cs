@@ -1,18 +1,21 @@
 using EcommerceApp.Application;
 using EcommerceApp.Application.Filters;
 using EcommerceApp.Infrastructure;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-// User Roles: [Admin, Seller, Customer, CustomerService]
+// User Roles: [Admin, Seller, Customer]
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
-builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString(builder.Environment.IsDevelopment() ? "DbConnection" : "DbConnectionThroughDocker")!);
+builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString(builder.Environment.IsDevelopment() ? "DbConnection" : "DbConnectionThroughDocker")!, builder.Configuration);
+builder.Services.AddHangfire(config => { config.UseSqlServerStorage(builder.Configuration.GetConnectionString("HangFireDbConnection")); });
+builder.Services.AddHangfireServer();
 builder.Services.AddApplication();
 builder.Services.AddControllers(options => { options.Filters.Add<ValidationFilter>(); });
 

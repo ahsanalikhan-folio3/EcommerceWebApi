@@ -4,12 +4,15 @@ namespace EcommerceApp.Application.Interfaces.Auth
 {
     public interface IAuthRepository
     {
-        public Task<bool> UserExistByEmailAsync(string email);
-        public Task<bool> UserExistByIdAsync(int Id);
-        public Task<bool> UserActiveAsync(string email);
-        public Task<string?> GetUserRoleAsync(string email);
-        public Task<ApplicationUser?> GetUserByEmailAsync(string email);
-        public Task<ApplicationUser?> GetUserByIdAsync(int id);
-        public Task<ApplicationUser> AddUser(ApplicationUser user);
+        Task<bool> UserExistByEmailAsync(string email);
+        Task<bool> UserExistByIdAsync(int Id);
+        Task<bool> UserActiveAsync(string email);
+        Task<string?> GetUserRoleAsync(string email);
+        Task<ApplicationUser?> GetUserByEmailAsync(string email);
+        Task<ApplicationUser?> GetUserByIdAsync(int id);
+        Task<AdminProfile?> GetAdminProfileByIdAsync(int id);
+        Task<SellerProfile?> GetSellerProfileByIdAsync(int id);
+        Task<CustomerProfile?> GetCustomerProfileByIdAsync(int id);
+        Task<ApplicationUser> AddUser(ApplicationUser user);
     }
 }

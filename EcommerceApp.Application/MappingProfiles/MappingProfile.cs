@@ -20,16 +20,47 @@ namespace EcommerceApp.Application.MappingProfiles
             CreateMap<AdminProfile, AdminProfileDto>().ReverseMap();
             CreateMap<AdminProfileDto, RegisterUserDto>().ReverseMap();
             CreateMap<GetAdminProfileDto, AdminProfileDto>().ReverseMap();
+            CreateMap<AdminProfile, GetAdminProfileDto>()
+                 .ForMember(dest => dest.Email,
+                     opt => opt.MapFrom(src => src.User.Email))
+                 .ForMember(dest => dest.PhoneNumber,
+                     opt => opt.MapFrom(src => src.User.PhoneNumber))
+                 .ForMember(dest => dest.FullName,
+                     opt => opt.MapFrom(src => src.User.FullName))
+                 .ForMember(dest => dest.Role,
+                     opt => opt.MapFrom(src => src.User.Role))
+                 .ReverseMap();
 
             // CustomerProfile User Mappings
             CreateMap<CustomerProfile, CustomerProfileDto>().ReverseMap();
             CreateMap<CustomerProfileDto, RegisterUserDto>().ReverseMap();
             CreateMap<GetCustomerProfileDto, CustomerProfileDto>().ReverseMap();
+            CreateMap<CustomerProfile, GetCustomerProfileDto>()
+                .ForMember(dest => dest.Email,
+                    opt => opt.MapFrom(src => src.User.Email))
+                .ForMember(dest => dest.PhoneNumber,
+                    opt => opt.MapFrom(src => src.User.PhoneNumber))
+                .ForMember(dest => dest.FullName,
+                    opt => opt.MapFrom(src => src.User.FullName))
+                .ForMember(dest => dest.Role,
+                    opt => opt.MapFrom(src => src.User.Role))
+                .ReverseMap();
+
 
             // SellerProfile User Mappings
             CreateMap<SellerProfile, SellerProfileDto>().ReverseMap();
             CreateMap<SellerProfileDto, RegisterUserDto>().ReverseMap();
             CreateMap<GetSellerProfileDto, SellerProfileDto>().ReverseMap();
+            CreateMap<SellerProfile, GetSellerProfileDto>()
+                .ForMember(dest => dest.Email,
+                    opt => opt.MapFrom(src => src.User.Email))
+                .ForMember(dest => dest.PhoneNumber,
+                    opt => opt.MapFrom(src => src.User.PhoneNumber))
+                .ForMember(dest => dest.FullName,
+                    opt => opt.MapFrom(src => src.User.FullName))
+                .ForMember(dest => dest.Role,
+                    opt => opt.MapFrom(src => src.User.Role))
+                .ReverseMap();
 
             // SellerOrder Mappings
             CreateMap<SellerOrder, SellerOrderDto>().ReverseMap();

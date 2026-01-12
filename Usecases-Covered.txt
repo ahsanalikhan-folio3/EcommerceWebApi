@@ -10,6 +10,7 @@ Seller Cases:
 =============
 -> Seller is able to register. [requires admin approval]
 -> Seller is able to login.
+-> Seller is able to view his profile.
 -> Seller is able to add products.
 -> Seller is able to update a product.
 -> Seller is able to update order status to either pending or processing only.
@@ -22,6 +23,7 @@ Customer Cases:
 ===============
 -> Customer is able to register. [direct register]
 -> Customer is able to login.
+-> Seller is able to view his profile.
 -> Customer is able to place orders.
 -> Customer is able to cancel a SellerOrder [Only when the SellerOrder is in Pending state]
 -> Customer can submit feedbacks for his delivered order. [Non-editable]

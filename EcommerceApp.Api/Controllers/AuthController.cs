@@ -42,7 +42,6 @@ namespace EcommerceApp.Api.Controllers
             if (result is null) return BadRequest(ApiResponse.ErrorResponse("User already exists.", null));
             return Ok(ApiResponse.SuccessResponse("Customer successfully added.", result));
         }
-
         [HttpPost("Register/Seller")]
         public async Task<IActionResult> RegisterSeller (SellerProfileDto user)
         {
@@ -50,7 +49,6 @@ namespace EcommerceApp.Api.Controllers
             if (result is null) return BadRequest(ApiResponse.ErrorResponse("User already exists.", null));
             return Ok(ApiResponse.SuccessResponse("Seller successfully added.", result));
         }
-
         [HttpPost("Login")]
         public async Task<IActionResult> LoginUser (LoginDto user)
         {
@@ -68,6 +66,13 @@ namespace EcommerceApp.Api.Controllers
 
             var result = await authService.LoginUser(user);
             return Ok(ApiResponse.SuccessResponse("User successfully logged in.", result));
+        }
+        [Authorize]
+        [HttpGet("Users/Profile")]
+        public async Task<IActionResult> GetUserProfile()
+        {
+            var result = await authService.GetUserProfileAsync();
+            return Ok(ApiResponse.SuccessResponse("User profile retrieved successfully.", result));
         }
     }
 }

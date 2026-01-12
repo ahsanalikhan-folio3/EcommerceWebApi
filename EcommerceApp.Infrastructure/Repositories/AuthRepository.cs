@@ -31,6 +31,24 @@ namespace EcommerceApp.Infrastructure.Repositories
             return await db.ApplicationUsers
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
+        public async Task<AdminProfile?> GetAdminProfileByIdAsync(int id)
+        {
+            return await db.AdminProfiles
+                .Include(u => u.User)
+                .FirstOrDefaultAsync(x => x.UserId == id);
+        }
+        public async Task<SellerProfile?> GetSellerProfileByIdAsync(int id)
+        {
+            return await db.SellerProfiles
+                .Include(u => u.User)
+                .FirstOrDefaultAsync(x => x.UserId == id);
+        }
+        public async Task<CustomerProfile?> GetCustomerProfileByIdAsync(int id)
+        {
+            return await db.CustomerProfiles
+                .Include(u => u.User)
+                .FirstOrDefaultAsync(x => x.UserId == id);
+        }
 
         public async Task<string?> GetUserRoleAsync(string email)
         {

@@ -3,6 +3,8 @@ using EcommerceApp.Application.Common;
 using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Interfaces;
 using EcommerceApp.Application.Interfaces.Auth;
+using EcommerceApp.Application.Interfaces.JobServices;
+using EcommerceApp.Application.Interfaces.User;
 using EcommerceApp.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 
@@ -13,12 +15,16 @@ namespace EcommerceApp.Application.Services
         private readonly IUnitOfWork uow;
         private readonly IMapper mapper;
         private readonly IJwtService jwtService;
+        private readonly IUserService user;
+        private readonly IBackgroundJobService backgroundJobService;
         private readonly PasswordHasher<ApplicationUser> passwordHasher;
-        public AuthService(IUnitOfWork uow, IMapper mapper, IJwtService jwtService)
+        public AuthService(IUnitOfWork uow, IMapper mapper, IJwtService jwtService, IUserService user, IBackgroundJobService backgroundJobService)
         {
+            this.user = user;
             this.uow = uow;
             this.mapper = mapper;
             this.jwtService = jwtService;
+            this.backgroundJobService = backgroundJobService;
             this.passwordHasher = new PasswordHasher<ApplicationUser>();
         }
         public async Task<bool> UserExistAsyncById (int id)
@@ -88,6 +94,7 @@ namespace EcommerceApp.Application.Services
             if (!result) return null;
 
             await uow.SaveChangesAsync();
+            backgroundJobService.EnqueueCustomerWelcomeEmailJob(customer.Email);
 
             GetCustomerProfileDto mappedResult = mapper.Map<GetCustomerProfileDto>(customer);
             return mappedResult;
@@ -128,6 +135,27 @@ namespace EcommerceApp.Application.Services
 
             GetSellerProfileDto mappedResult = mapper.Map<GetSellerProfileDto>(seller);
             return mappedResult;
+        }
+
+        public async Task<object?> GetUserProfileAsync()
+        {
+            int userId = user.GetUserIdInt();
+            if (user.IsInRole(AppRoles.Admin))
+            {
+                var adminProfile = await uow.Auth.GetAdminProfileByIdAsync(userId);
+                return mapper.Map<GetAdminProfileDto>(adminProfile);
+            }
+            else if (user.IsInRole(AppRoles.Customer))
+            {
+                var customerProfile = await uow.Auth.GetCustomerProfileByIdAsync(userId);
+                return mapper.Map<GetCustomerProfileDto>(customerProfile);
+            }
+            else if (user.IsInRole(AppRoles.Seller))
+            {
+                var sellerProfile = await uow.Auth.GetSellerProfileByIdAsync(userId);
+                return mapper.Map<GetSellerProfileDto>(sellerProfile);
+            }
+            return null;
         }
     }
 }

@@ -14,5 +14,6 @@ namespace EcommerceApp.Application.Interfaces.Auth
         Task<bool> ValidatePassword(LoginDto user);
         Task<GetLoginResultDto> LoginUser(LoginDto user);
         Task<bool> ChangeUserActivationStatus(int id, UserActivationDto userActivationDto);
+        Task<object?> GetUserProfileAsync();
     }
 }
