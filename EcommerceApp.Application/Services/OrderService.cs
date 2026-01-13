@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Interfaces;
+using EcommerceApp.Application.Interfaces.JobServices;
 using EcommerceApp.Application.Interfaces.Orders;
 using EcommerceApp.Application.Interfaces.User;
 using EcommerceApp.Domain.Entities;
@@ -12,11 +13,13 @@ namespace EcommerceApp.Application.Services
         private readonly IUnitOfWork uow;
         private readonly IMapper mapper;
         private readonly IUserService user;
-        public OrderService(IUnitOfWork uow, IMapper mapper, IUserService user)
+        private readonly IBackgroundJobService backgroundJobService;
+        public OrderService(IUnitOfWork uow, IMapper mapper, IUserService user, IBackgroundJobService backgroundJobService)
         {
             this.uow = uow;
             this.mapper = mapper;
             this.user = user;
+            this.backgroundJobService = backgroundJobService;
         }
         public async Task<bool> SellerOrderExistAsync (int sellerOrderId)
         {
@@ -41,6 +44,7 @@ namespace EcommerceApp.Application.Services
             var dbProducts = await uow.Products.GetProductByIds(productIds);
             var productDict = dbProducts.ToDictionary(p => p.Id);
 
+            List<OrderDetailsEmailDto> orderDetailsEmailDtos = new List<OrderDetailsEmailDto>();
             foreach (var item in mappedOrder.SellerOrders)
             {
                 if (!productDict.TryGetValue(item.ProductId, out var dbProduct))
@@ -64,6 +68,18 @@ namespace EcommerceApp.Application.Services
             var createdOrder = await uow.Orders.CreateOrderAsync(mappedOrder);
 
             await uow.SaveChangesAsync();
+
+            // Prepare email details
+            decimal totalAmount = mappedOrder.TotalAmount;
+            var sellerOrdersAlongWithProductDetails = await uow.SellerOrders.GetSellerOrderByOrderIdAlongWithProductDetails(createdOrder.Id);
+            for (int i = 0; i < sellerOrdersAlongWithProductDetails.Count(); i++)
+            {
+                var item = sellerOrdersAlongWithProductDetails.ElementAt(i);
+                orderDetailsEmailDtos.Add(new OrderDetailsEmailDto { SellerOrderId = item.Id, ProductName = item.OrderedProduct.Name, Quantity = item.Quantity });
+            }
+
+            // Send Email in background
+            backgroundJobService.EnqueueSuccessfullOrderCompletionEmailJob(user.Email!, totalAmount, orderDetailsEmailDtos);
 
             return true;
         }
@@ -124,6 +140,11 @@ namespace EcommerceApp.Application.Services
             await uow.SellerOrders.UpdateSellerOrderStatus(sellerOrderId, updateSellerOrderStatusDto.Status);
             await uow.SaveChangesAsync();
 
+            var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
+            var parentOrder = await uow.Orders.GetByIdAsync(sellerOrder!.OrderId);
+            var customer = await uow.Auth.GetUserByIdAsync(parentOrder!.UserId);
+            backgroundJobService.EnqueueOrderStatusUpdateEmailJob(customer!.Email!, sellerOrderId, updateSellerOrderStatusDto.Status);
+
             return true;
         }
         public async Task<bool> UpdateSellerOrderStatusForSeller(int sellerOrderId, UpdateSellerOrderStatusDto updateSellerOrderStatusDto)
@@ -131,14 +152,15 @@ namespace EcommerceApp.Application.Services
             var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
             OrderStatus status = updateSellerOrderStatusDto.Status;
 
-            // If order is in pending state, seller can only update it to processing and vice versa.
-            if (
-                (sellerOrder!.Status == OrderStatus.Pending && status == OrderStatus.Processing) ||
-                (sellerOrder.Status == OrderStatus.Processing && status == OrderStatus.Pending)
-             )
+            // If order is in pending state, seller can only update it to processing.
+            if (sellerOrder!.Status == OrderStatus.Pending && status == OrderStatus.Processing)
             {
                 await uow.SellerOrders.UpdateSellerOrderStatus(sellerOrderId, status);
                 await uow.SaveChangesAsync();
+
+                var parentOrder = await uow.Orders.GetByIdAsync(sellerOrder.OrderId);
+                var customer = await uow.Auth.GetUserByIdAsync(parentOrder!.UserId);
+                backgroundJobService.EnqueueOrderStatusUpdateEmailJob(customer!.Email, sellerOrderId, updateSellerOrderStatusDto.Status);
 
                 return true;
             }
@@ -170,6 +192,10 @@ namespace EcommerceApp.Application.Services
 
             await uow.SaveChangesAsync();
 
+            var sellerId = product.SellerId;
+            var seller = await uow.Auth.GetUserByIdAsync(sellerId);
+            backgroundJobService.EnqueueOrderStatusUpdateEmailJob(seller!.Email, sellerOrderId, updateSellerOrderStatusDto.Status);
+            
             return true;
         }
 

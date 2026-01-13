@@ -79,5 +79,10 @@ namespace EcommerceApp.Infrastructure.Repositories
         {
             return await db.SellerOrders.Include(p => p.CorresponingOrder).Include(p => p.OrderedProduct).Where(p => p.CorresponingOrder.UserId == userId).ToListAsync();
         }
+        // Get seller orders by order id along with product details
+        public async Task<List<SellerOrder>> GetSellerOrderByOrderIdAlongWithProductDetails (int orderId)
+        {
+            return await db.SellerOrders.Include(p => p.OrderedProduct).Where(p => p.OrderId == orderId).ToListAsync();
+        }
     }
 }

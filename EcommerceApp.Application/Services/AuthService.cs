@@ -62,6 +62,9 @@ namespace EcommerceApp.Application.Services
             user!.IsActive = userActivationDto.IsActive;
             await uow.SaveChangesAsync();
 
+            if (userActivationDto.IsActive) backgroundJobService.EnqueueAccountActivationEmailJob(user.Email);
+            else backgroundJobService.EnqueueAccountDeactivationEmailJob(user.Email); 
+
             return true;
         }
         private async Task<ApplicationUser?> RegisterUser(RegisterUserDto user)
@@ -132,6 +135,7 @@ namespace EcommerceApp.Application.Services
             if (!result) return null;
 
             await uow.SaveChangesAsync();
+            backgroundJobService.EnqueueAccountReviewOfSellerOnRegistrationEmailJob(seller.Email);
 
             GetSellerProfileDto mappedResult = mapper.Map<GetSellerProfileDto>(seller);
             return mappedResult;

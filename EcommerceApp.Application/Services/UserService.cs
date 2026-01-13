@@ -16,6 +16,10 @@ public class UserService : IUserService
     public string Role =>
         _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value
         ?? throw new UnauthorizedAccessException("Role not found in JWT");
+
+    public string Email =>
+        _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value
+        ?? throw new UnauthorizedAccessException("Email not found in JWT");
     public bool IsInRole(string role) =>
         _httpContextAccessor.HttpContext?
             .User
