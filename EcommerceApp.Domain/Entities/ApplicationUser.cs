@@ -10,5 +10,8 @@
         public required string FullName { get; set; } 
         public bool IsActive { get; set; } // Higher Ups can deactivate the User
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public required ICollection<Chat> SellerChats { get; set; }
+        public required ICollection<Chat> CustomerChats { get; set; }
+        public required ICollection<Message> Messages { get; set; }
     }
 }

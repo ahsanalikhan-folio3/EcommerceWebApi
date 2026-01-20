@@ -4,6 +4,7 @@ using EcommerceApp.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcommerceApp.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260120085731_Added Chats and Messages Table.")]
+    partial class AddedChatsandMessagesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,8 +103,6 @@ namespace EcommerceApp.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
 
                     b.HasIndex("SellerId", "CustomerId")
                         .IsUnique();
@@ -221,8 +222,6 @@ namespace EcommerceApp.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ChatId");
-
-                    b.HasIndex("SenderId");
 
                     b.HasIndex("ChatId", "MessagedAt");
 
@@ -385,25 +384,6 @@ namespace EcommerceApp.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("EcommerceApp.Domain.Entities.Chat", b =>
-                {
-                    b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", "Customer")
-                        .WithMany("CustomerChats")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", "Seller")
-                        .WithMany("SellerChats")
-                        .HasForeignKey("SellerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("Seller");
-                });
-
             modelBuilder.Entity("EcommerceApp.Domain.Entities.CustomerProfile", b =>
                 {
                     b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", "User")
@@ -450,15 +430,7 @@ namespace EcommerceApp.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", "Sender")
-                        .WithMany("Messages")
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("CorrespondingChat");
-
-                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.Order", b =>
@@ -507,15 +479,6 @@ namespace EcommerceApp.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("EcommerceApp.Domain.Entities.ApplicationUser", b =>
-                {
-                    b.Navigation("CustomerChats");
-
-                    b.Navigation("Messages");
-
-                    b.Navigation("SellerChats");
                 });
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.Chat", b =>

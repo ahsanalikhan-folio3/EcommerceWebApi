@@ -1,14 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>473a0165-bb53-4403-996a-57707d0ce0b8</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
 	  <PackageReference Include="Hangfire.AspNetCore" Version="1.8.22" />
 	  <PackageReference Include="Hangfire.SqlServer" Version="1.8.22" />
+	  <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.9" />
 	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.22" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.22">

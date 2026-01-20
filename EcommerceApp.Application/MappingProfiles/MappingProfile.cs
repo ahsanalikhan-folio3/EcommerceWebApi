@@ -73,6 +73,9 @@ namespace EcommerceApp.Application.MappingProfiles
             // Feedback Mappings
             CreateMap<Feedback, FeedbackDto>().ReverseMap();
             CreateMap<Feedback, GetFeedbackDto>().ReverseMap();
+
+            // Chat Mappings
+            CreateMap<Chat, CreateChatDto>().ReverseMap();
         }
     }
 }

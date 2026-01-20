@@ -13,6 +13,8 @@ namespace EcommerceApp.Infrastructure.Database
         public DbSet<SellerProfile> SellerProfiles { get; set; }
         public DbSet<CustomerProfile> CustomerProfiles { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<Chat> Chats { get; set; }
+        public DbSet<Message> Messages { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) {}
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -140,6 +142,96 @@ namespace EcommerceApp.Infrastructure.Database
             modelBuilder.Entity<Feedback>()
                 .HasIndex(x => x.SellerOrderId)
                 .IsUnique();
+
+            // =====================================================
+            // 5. CHATS AND MESSAGES TABLE
+            // =====================================================
+            modelBuilder.Entity<Chat>(entity =>
+            {
+                entity.ToTable("Chats");
+
+                entity.HasKey(c => c.Id);
+
+                entity.Property(c => c.SellerId)
+                      .IsRequired();
+
+                entity.Property(c => c.CustomerId)
+                      .IsRequired();
+
+                entity.Property(c => c.IsClosed)
+                      .HasDefaultValue(false);
+
+                entity.Property(c => c.CreatedAt)
+                      .IsRequired();
+
+                entity.Property(c => c.LastMessagedAt)
+                      .IsRequired();
+
+                // One Seller → Many Chats
+                entity.HasOne(c => c.Seller)
+                      .WithMany(a => a.SellerChats)
+                      .HasForeignKey(c => c.SellerId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // One Customer → Many Chats
+                entity.HasOne(c => c.Customer)
+                      .WithMany(a => a.CustomerChats)
+                      .HasForeignKey(c => c.CustomerId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // One Chat → Many Messages
+                entity.HasMany(c => c.Messages)
+                      .WithOne(m => m.CorrespondingChat)
+                      .HasForeignKey(m => m.ChatId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Prevent duplicate chats between same seller & customer
+                entity.HasIndex(c => new { c.SellerId, c.CustomerId })
+                      .IsUnique();
+            });
+
+            modelBuilder.Entity<Message>(entity =>
+            {
+                entity.ToTable("Messages");
+
+                entity.HasKey(m => m.Id);
+
+                entity.Property(m => m.ChatId)
+                      .IsRequired();
+
+                entity.Property(m => m.SenderId)
+                      .IsRequired();
+
+                entity.Property(m => m.SenderRole)
+                      .IsRequired()
+                      .HasMaxLength(20);
+
+                entity.Property(m => m.Content)
+                      .IsRequired()
+                      .HasMaxLength(2000);
+
+                entity.Property(m => m.IsRead)
+                      .HasDefaultValue(false);
+
+                entity.Property(m => m.MessagedAt)
+                      .IsRequired();
+
+                // One Sender → Many Messages
+                entity.HasOne(m => m.Sender)
+                      .WithMany(a => a.Messages)
+                      .HasForeignKey(m => m.SenderId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Indexes for performance
+                entity.HasIndex(m => m.ChatId);
+                entity.HasIndex(m => new { m.ChatId, m.MessagedAt });
+
+                // enforce allowed roles at DB level (SQL Server)
+                entity.ToTable( t => t.HasCheckConstraint (
+                    "CK_Message_SenderRole",
+                    "[SenderRole] IN ('Customer', 'Seller')"
+                ));
+            });
         }
     }
 }

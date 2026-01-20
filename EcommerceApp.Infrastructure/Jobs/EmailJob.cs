@@ -16,6 +16,14 @@ namespace EcommerceApp.Infrastructure.Jobs
         {
             this.emailSettings = options.Value;
         }
+        private MimeMessage GetMimeMessage(string email)
+        {
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(emailSettings.FromName, emailSettings.FromEmail));
+            message.To.Add(new MailboxAddress("", email));
+
+            return message;
+        }
         private async Task SendEmail (MimeMessage message)
         {
             using var smtp = new SmtpClient();
@@ -23,14 +31,6 @@ namespace EcommerceApp.Infrastructure.Jobs
             await smtp.AuthenticateAsync(emailSettings.Username, emailSettings.AppPassword);
             await smtp.SendAsync(message);
             await smtp.DisconnectAsync(true);
-        }
-        private MimeMessage GetMimeMessage (string email)
-        {
-            var message = new MimeMessage();
-            message.From.Add(new MailboxAddress(emailSettings.FromName, emailSettings.FromEmail));
-            message.To.Add(new MailboxAddress("", email));
-
-            return message;
         }
         public async Task SendAccountActivationEmail(string email)
         {
