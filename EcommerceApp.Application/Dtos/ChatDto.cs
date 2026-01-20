@@ -4,4 +4,8 @@
     {
         public int SellerId { get; set; }
     }
+    public class SendMessageDto
+    {
+        public required string Content { get; set; }
+    }
 }

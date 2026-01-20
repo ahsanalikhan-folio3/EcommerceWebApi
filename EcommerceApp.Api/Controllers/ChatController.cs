@@ -26,5 +26,26 @@ namespace EcommerceApp.Api.Controllers
             if (result) return Ok(ApiResponse.SuccessResponse("Chat created successfully", null));
             return BadRequest(ApiResponse.ErrorResponse("Failed to create a chat.", null));
         }
+
+        // Only customers can close chats.
+        [Authorize(Roles = AppRoles.Customer)] 
+        [HttpPatch("{id}/Close")]
+        public async Task<IActionResult>CloseChat(int id)
+        {
+            var result = await chatService.CloseChat(id);
+            if (result) return Ok(ApiResponse.SuccessResponse("Chat closed successfully", null));
+            return BadRequest(ApiResponse.ErrorResponse("Failed to close the chat.", null));
+        }
+
+        // Both customers and sellers can send messages in an open chat.
+        // We will only validate that the requestor is either a customer or a seller in the chat resource.
+        [Authorize(Roles = $"{AppRoles.Customer},{AppRoles.Seller}")]
+        [HttpPost("{id}/Message")]
+        public async Task <IActionResult> SendMessage(int id, SendMessageDto sendMessageDto)
+        {
+            var result = await chatService.SendMessage(id, sendMessageDto);
+            if (result) return Ok(ApiResponse.SuccessResponse("Message sent successfully", null));
+            return BadRequest(ApiResponse.ErrorResponse("Failed to send a message.", null));
+        }
     }
 }

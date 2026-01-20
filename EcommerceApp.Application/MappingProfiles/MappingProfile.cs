@@ -76,6 +76,7 @@ namespace EcommerceApp.Application.MappingProfiles
 
             // Chat Mappings
             CreateMap<Chat, CreateChatDto>().ReverseMap();
+            CreateMap<Message, SendMessageDto>().ReverseMap();
         }
     }
 }

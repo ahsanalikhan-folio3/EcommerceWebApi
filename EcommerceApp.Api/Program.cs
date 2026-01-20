@@ -18,6 +18,7 @@ builder.Services.AddHangfire(config => { config.UseSqlServerStorage(builder.Conf
 builder.Services.AddHangfireServer();
 builder.Services.AddApplication();
 builder.Services.AddControllers(options => { options.Filters.Add<ValidationFilter>(); });
+builder.Services.AddSignalR();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
