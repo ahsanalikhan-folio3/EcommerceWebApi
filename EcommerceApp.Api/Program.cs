@@ -1,6 +1,7 @@
 using EcommerceApp.Application;
 using EcommerceApp.Application.Filters;
 using EcommerceApp.Infrastructure;
+using EcommerceApp.Infrastructure.Hubs;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -91,5 +92,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();

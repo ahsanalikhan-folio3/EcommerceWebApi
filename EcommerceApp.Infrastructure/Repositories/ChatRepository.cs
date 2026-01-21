@@ -17,6 +17,12 @@ namespace EcommerceApp.Infrastructure.Repositories
             var result = await db.Chats.AddAsync(chat);
             return result.Entity;
         }
+
+        public async Task<IEnumerable<Chat>> GetChatAlongWithMessages(int chatId)
+        {
+            return await db.Chats.Include(m => m.Messages).Where(c => c.Id == chatId).ToListAsync();
+        }
+
         public async Task<Chat?> GetChatById(int id)
         {
             return await db.Chats.FirstOrDefaultAsync(c => c.Id == id);

@@ -3,6 +3,7 @@ using EcommerceApp.Application.Common;
 using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Interfaces;
 using EcommerceApp.Application.Interfaces.Chats;
+using EcommerceApp.Application.Interfaces.Realtime;
 using EcommerceApp.Application.Interfaces.User;
 using EcommerceApp.Domain.Entities;
 
@@ -13,12 +14,14 @@ namespace EcommerceApp.Application.Services
         private readonly IUnitOfWork uow;
         private readonly IMapper mapper;
         private readonly IUserService user;
+        private readonly IRealtimeChatNotifier realtimeChatNotifier;
 
-        public ChatService(IUnitOfWork uow, IMapper mapper, IUserService user)
+        public ChatService(IUnitOfWork uow, IMapper mapper, IUserService user, IRealtimeChatNotifier realtimeChatNotifier)
         {
             this.uow = uow;
             this.mapper = mapper;
             this.user = user;
+            this.realtimeChatNotifier = realtimeChatNotifier;
         }
         public async Task<bool> CreateChat(CreateChatDto createChatDto)
         {
@@ -40,7 +43,6 @@ namespace EcommerceApp.Application.Services
             await uow.SaveChangesAsync();
             return true;
         }
-
         public async Task<bool> SendMessage(int chatId, SendMessageDto sendMessageDto)
         {
             var chat = await uow.Chats.GetChatById(chatId);
@@ -66,6 +68,9 @@ namespace EcommerceApp.Application.Services
             // Update the chat's last messaged timestamp.
             chat.LastMessagedAt = DateTime.UtcNow;
             await uow.SaveChangesAsync();
+
+            string receiverId = (userId == chat.CustomerId ? chat.SellerId : chat.CustomerId).ToString();
+            await realtimeChatNotifier.SendMessageInRealtime(receiverId, sendMessageDto.Content);
 
             return true;
         }

@@ -9,11 +9,13 @@ using EcommerceApp.Application.Interfaces.Jobs;
 using EcommerceApp.Application.Interfaces.JobServices;
 using EcommerceApp.Application.Interfaces.Orders;
 using EcommerceApp.Application.Interfaces.Products;
+using EcommerceApp.Application.Interfaces.Realtime;
 using EcommerceApp.Application.Interfaces.Sellers;
 using EcommerceApp.Application.Interfaces.User;
 using EcommerceApp.Infrastructure.Database;
 using EcommerceApp.Infrastructure.Jobs;
 using EcommerceApp.Infrastructure.JobService;
+using EcommerceApp.Infrastructure.Realtime;
 using EcommerceApp.Infrastructure.Repositories;
 using EcommerceApp.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +46,7 @@ namespace EcommerceApp.Infrastructure
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IRealtimeChatNotifier, SignalRRealtimeChatNotifier>();
 
             // Search what is perfect for a background job.
             services.AddTransient<IEmailJob, EmailJob>();
