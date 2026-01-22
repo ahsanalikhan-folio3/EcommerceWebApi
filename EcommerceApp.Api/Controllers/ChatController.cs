@@ -47,5 +47,13 @@ namespace EcommerceApp.Api.Controllers
             if (result) return Ok(ApiResponse.SuccessResponse("Message sent successfully", null));
             return BadRequest(ApiResponse.ErrorResponse("Failed to send a message.", null));
         }
+        [Authorize(Roles = $"{AppRoles.Customer},{AppRoles.Seller}")]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> FetchChat(int id)
+        {
+            var result = await chatService.GetChatAlongWithMessages(id);
+            if (result != null) return Ok(ApiResponse.SuccessResponse("Chat fetched successfully", result));
+            return NotFound(ApiResponse.ErrorResponse("Chat not found.", null));
+        }
     }
 }

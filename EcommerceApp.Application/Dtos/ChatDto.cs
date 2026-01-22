@@ -13,6 +13,8 @@ namespace EcommerceApp.Application.Dtos
     public class ChatDto
     {
         public int Id { get; set; }
+        public int SellerId { get; set; }  
+        public int CustomerId { get; set; } 
         public bool IsClosed { get; set; } // Only Customer can close chats with sellers
         public DateTime CreatedAt { get; set; }
         public DateTime LastMessagedAt { get; set; }

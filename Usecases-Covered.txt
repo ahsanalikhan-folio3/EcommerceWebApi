@@ -38,3 +38,11 @@ Customer Cases:
 -> A account deactivation email is sent to the user when admin deactivates a user.
 -> A account activation email is sent to the user when admin activates a user.
 -> A order status update email is sent to the customer when order status is updated by admin (InWarehouse, Shipped or Delivered) or seller (Processing) and to the seller when order is cancelled by the customer.
+
+ Chat Cases:
+==============
+-> Only a Customer can create a chat with a seller.
+-> Only a Customer has the authority to close the chat with the seller.
+-> Chat can be between a seller and a customer.
+-> Messages are sent to the clients in realtime using the SignalR library.
+-> Both Sellers and Customer can see their chat history.

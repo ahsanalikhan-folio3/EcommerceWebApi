@@ -74,5 +74,12 @@ namespace EcommerceApp.Application.Services
 
             return true;
         }
+        public async Task<ChatDto?> GetChatAlongWithMessages(int chatId)
+        {
+            Chat? chat = await uow.Chats.GetChatAlongWithMessages(chatId);
+            if (chat is null) return null;
+
+            return mapper.Map<ChatDto>(chat);
+        }
     }
 }

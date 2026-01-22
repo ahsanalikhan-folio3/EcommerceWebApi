@@ -72,7 +72,16 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
+builder.Services.AddCors(opt =>
+{
+    opt.AddPolicy(name: "CorsPolicy", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000") // react app origin
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+               //.AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
@@ -84,6 +93,7 @@ if (app.Environment.IsDevelopment())
 
 // Configure the HTTP request pipeline.
 
+app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();

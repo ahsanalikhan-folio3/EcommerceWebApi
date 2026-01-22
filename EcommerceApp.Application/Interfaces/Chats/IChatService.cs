@@ -7,5 +7,6 @@ namespace EcommerceApp.Application.Interfaces.Chats
         Task<bool> CreateChat(CreateChatDto createChatDto);
         Task<bool> CloseChat(int id);
         Task<bool> SendMessage(int chatId, SendMessageDto sendMessageDto);
+        Task<ChatDto?> GetChatAlongWithMessages(int chatId);
     }
 }
