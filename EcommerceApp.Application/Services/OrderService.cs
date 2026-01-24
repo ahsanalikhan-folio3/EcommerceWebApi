@@ -152,17 +152,20 @@ namespace EcommerceApp.Application.Services
             var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
             OrderStatus status = updateSellerOrderStatusDto.Status;
 
-            // If order is in pending state, seller can only update it to processing.
-            if (sellerOrder!.Status == OrderStatus.Pending && status == OrderStatus.Processing)
+            // If order is in pending state, seller can only update it to either processing or cancelled.
+            if (sellerOrder!.Status == OrderStatus.Pending)
             {
-                await uow.SellerOrders.UpdateSellerOrderStatus(sellerOrderId, status);
-                await uow.SaveChangesAsync();
+                if (status == OrderStatus.Processing || status == OrderStatus.Cancelled)
+                {
+                    await uow.SellerOrders.UpdateSellerOrderStatus(sellerOrderId, status);
+                    await uow.SaveChangesAsync();
 
-                var parentOrder = await uow.Orders.GetByIdAsync(sellerOrder.OrderId);
-                var customer = await uow.Auth.GetUserByIdAsync(parentOrder!.UserId);
-                backgroundJobService.EnqueueOrderStatusUpdateEmailJob(customer!.Email, sellerOrderId, updateSellerOrderStatusDto.Status);
+                    var parentOrder = await uow.Orders.GetByIdAsync(sellerOrder.OrderId);
+                    var customer = await uow.Auth.GetUserByIdAsync(parentOrder!.UserId);
+                    backgroundJobService.EnqueueOrderStatusUpdateEmailJob(customer!.Email, sellerOrderId, updateSellerOrderStatusDto.Status);
 
-                return true;
+                    return true;
+                }
             }
 
             return false;

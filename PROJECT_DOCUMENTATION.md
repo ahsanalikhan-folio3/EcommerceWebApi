@@ -1,26 +1,23 @@
-# EcommerceApp API – Comprehensive Project Documentation
+# EcommerceApp API – Backend Architecture & Comprehensive Documentation
 
 ## 1. Project Overview
 
-**EcommerceApp API** is a full-featured, role-based e-commerce backend built with modern ASP.NET Core best practices. It serves as the business logic and data backbone for a marketplace platform where sellers can list and manage products, customers can browse and purchase items, and administrators oversee platform operations. The system supports three distinct user roles—**Admin**, **Seller**, and **Customer**—each with tailored functionality, security, and business workflows. The platform is designed for scalability, maintainability, and compliance with enterprise-grade architecture patterns.
+**EcommerceApp API** is a robust, role-based e-commerce backend built with modern ASP.NET Core best practices. It serves as the complete business logic and data backbone for a DARAZ-like, warehouse-based B2C marketplace platform, where multiple sellers operate independently within a centralized system. The platform supports three distinct user roles — **Admin**, **Seller**, and **Customer** — each with tailored functionality, security, and business workflows, enabling efficient product management, order processing, and real-time interactions across the marketplace.
 
-**Main Purpose & Business Domain:**  
-This is a B2C marketplace where multiple sellers operate independently within a centralized platform. Customers discover products across sellers, place orders, provide feedback, and manage their purchase history. Sellers manage their product catalogs, track incoming orders, and interact with customers through real-time chat. Administrators perform oversight, user management, and platform governance.
-
-**Target Users:**
-- **Customers**: Browse products, place orders, submit reviews/ratings, engage in seller communication
-- **Sellers**: Register, publish products, manage inventory, view orders, accept/reject/ship orders, respond to customer queries
-- **Admins**: Manage users (activate/deactivate), view all orders, oversee platform health
+**Core Purpose:**  
+This platform enables a multi-vendor marketplace where:
+- **Customers** discover products across sellers, place orders, provide feedback, and manage purchase history
+- **Sellers** register and manage their product catalogs, track incoming orders, and interact with customers via real-time chat
+- **Admins** oversee user management, platform health, and system governance
 
 **Key High-Level Features:**
 - User authentication & role-based authorization (JWT-based)
 - Product catalog management with seller isolation
-- Shopping cart abstraction through Order and SellerOrder entities
+- Order management with state machine status tracking
 - Real-time bidirectional chat (SignalR-based)
-- Order lifecycle management with status tracking
 - Customer feedback and rating system
-- Email notifications (welcome, account changes, order updates via Hangfire)
-- Admin user deactivation/reactivation with automatic notifications
+- Asynchronous email notifications (Hangfire-based)
+- Admin user governance (activate/deactivate accounts)
 
 ---
 
@@ -126,8 +123,6 @@ EcommerceAppApi/
 │   ├── Migrations/
 │   │   └── (EF Core migration files for schema versioning)
 │   ├── UnitOfWork.cs               (Aggregates all repositories)
-│   ├── Security/
-│   │   └── JwtService.cs           (Token generation logic)
 │   └── DependencyInjection.cs      (DbContext, repository, and infrastructure service registration)
 │
 ├── EcommerceApp.Api/
@@ -144,11 +139,8 @@ EcommerceAppApi/
 │   ├── appsettings.json            (Connection strings, JWT, email SMTP)
 │   ├── Properties/launchSettings.json (Hosting profile)
 │   └── EcommerceApp.Api.http       (REST client examples for manual testing)
-│
-├── DB-Schema-File.sql              (Initial database schema)
 ├── docker-compose.yml              (SQL Server + API containerization)
 ├── Dockerfile                      (API image definition)
-├── init-db.sh, dbrestore.sh        (Database initialization scripts)
 └── sql-backup/                     (Database backup files)
 ```
 
@@ -193,174 +185,723 @@ This separation ensures the team can work on different layers in parallel and re
 
 ---
 
-## 5. Key Features & Implementation Highlights
+## 5. Complete API Endpoint Reference
 
-### 5.1 User Authentication & Authorization
-**Description:**  
-Role-based access control using JWT tokens. Users register as Customer or Seller; Admins are created externally (commented-out endpoint). Passwords are hashed using ASP.NET Identity's PasswordHasher.
+### 5.1 Authentication Endpoints
 
-**Main Endpoints:**
-- `POST /api/auth/register/customer` – Register as customer (auto-activated)
-- `POST /api/auth/register/seller` – Register as seller (requires admin activation)
-- `POST /api/auth/login` – Authenticate and receive JWT
-- `GET /api/auth/users/profile` – Retrieve authenticated user profile
-- `PATCH /api/auth/users/{id}` – Admin activates/deactivates users
+#### POST /api/Auth/Register/Customer
+**Access Level:** Public (AllowAnonymous)  
+**Purpose:** Register a new customer account  
 
-**Implementation Location:**  
-`AuthService.cs`, `AuthRepository.cs`, `AuthValidator.cs`, `JwtService.cs`
-
-**Special Details:**
-- JWT signed with HS256 (symmetric key); issuer and audience validated.
-- `GlobalExceptionHandlerMiddleware` catches login errors and formats them consistently.
-- Sellers require admin approval; customers are auto-approved.
-- Background jobs (`IBackgroundJobService`) send welcome/activation emails asynchronously via Hangfire.
-
----
-
-### 5.2 Product Catalog & Seller Management
-**Description:**  
-Sellers can independently publish, update, and delete their products. Customers and guests can browse all products. Search and filtering happen at the application/repository level.
-
-**Main Endpoints:**
-- `GET /api/products` – List all products (or seller's own products if `?mine=true` and authenticated as Seller)
-- `GET /api/products/{id}` – Fetch single product details
-- `POST /api/products` – Seller creates new product
-- `PUT /api/products/{id}` – Seller updates their product
-- `DELETE /api/products/{id}` – Seller soft-deletes their product
-- `GET /api/products/{id}/feedbacks` – Seller views product reviews
-
-**Implementation Location:**  
-`ProductService.cs`, `ProductRepository.cs`, `ProductValidator.cs`
-
-**Special Details:**
-- Authorization checks `ProductBelongsToSellerAsync()` to enforce seller isolation.
-- Products include slug for SEO-friendly URLs (not currently used in endpoints).
-- Soft delete is supported (IsAvailable flag can mark products as inactive).
-- Stock quantity decrements when orders are placed.
-
----
-
-### 5.3 Shopping Cart & Order Placement
-**Description:**  
-The "cart" is implicit in the order creation flow. Customers specify products and quantities directly in an OrderDto; the API creates an Order header and SellerOrder line items in one transaction.
-
-**Main Endpoints:**
-- `POST /api/orders` – Customer creates order (specifies line items: product IDs and quantities)
-- `GET /api/orders` – Customer, Seller, or Admin retrieves relevant orders
-
-**Implementation Location:**  
-`OrderService.cs`, `OrderRepository.cs`, `OrderValidator.cs`
-
-**Special Details:**
-- No persistent cart entity; orders are created atomically.
-- Stock validation and decrement happen in `CreateOrderAsync()`.
-- Role-based filtering: Admin sees all orders, Sellers see their items, Customers see their orders.
-- Email notifications triggered on order creation (background job).
-
----
-
-### 5.4 Order Management & Status Lifecycle
-**Description:**  
-Sellers manage individual SellerOrder items through a state machine. Customers can cancel orders or leave feedback post-delivery. Admins have full visibility and can override statuses.
-
-**Order Status Enum:**
-```
-Pending → Processing → InWarehouse → Shipped → Delivered → (or Cancelled)
+**Request Body (`CustomerProfileDto`):**
+```json
+{
+  "email": "customer@example.com",
+  "password": "SecurePass123!",
+  "confirmPassword": "SecurePass123!",
+  "role": "Customer",
+  "phoneNumber": "+1234567890",
+  "fullName": "John Doe",
+  "houseNumber": "123",
+  "streetNumber": "Main St",
+  "city": "Springfield",
+  "state": "IL",
+  "postalCode": "62701",
+  "country": "USA",
+  "gender": "Male"
+}
 ```
 
-**Main Endpoints:**
-- `PUT /api/orders/{id}` – Update SellerOrder status (different rules for Seller/Admin/Customer)
-- `POST /api/orders/{id}/feedback` – Customer submits feedback after delivery
+**Response (200 OK):**
+- Customer profile with `IsActive = true` (auto-activated)
+- Can immediately log in
+- Welcome email sent asynchronously via Hangfire
 
-**Implementation Location:**  
-`OrderService.cs`, `UpdateSellerOrderStatusDto`, `FeedbackDto`
-
-**Special Details:**
-- Sellers can accept (Processing) or reject (Cancelled) pending orders.
-- Admins can force-update any status.
-- Customers can only cancel if order is Pending; they can leave feedback only if Delivered.
-- Feedback validation ensures no duplicate reviews per SellerOrder.
+**Validations:**
+- Email must be unique
+- Password must meet complexity requirements
+- confirmPassword must match password
+- All required fields present
 
 ---
 
-### 5.5 Real-Time Chat System
-**Description:**  
-Sellers and customers exchange messages via WebSocket (SignalR). Messages are persisted and retrievable by chat history. Real-time notifications push incoming messages to connected clients.
+#### POST /api/Auth/Register/Seller
+**Access Level:** Public (AllowAnonymous)  
+**Purpose:** Register a new seller account (pending admin approval)  
 
-**Main Endpoints:**
-- `GET /api/chats` – Retrieve chat list for user
-- `POST /api/chats/messages` – Send message (WebSocket handled by SignalR Hub)
+**Request Body (`SellerProfileDto`):**
+```json
+{
+  "email": "seller@example.com",
+  "password": "SecurePass123!",
+  "confirmPassword": "SecurePass123!",
+  "role": "Seller",
+  "phoneNumber": "+1234567890",
+  "fullName": "Jane Smith",
+  "storename": "Smith's Electronics",
+  "city": "Springfield",
+  "state": "IL",
+  "postalCode": "62701",
+  "country": "USA"
+}
+```
 
-**SignalR Hub:**
-- `ChatHub` at `/hubs/chat` – Manages client connections and broadcasts messages
-- Methods: `SendMessage()`, `ReceiveMessage()`
+**Response (200 OK):**
+- Seller profile with `IsActive = false` (awaiting admin approval)
+- Cannot log in until activated by admin
+- Admin notification email sent asynchronously
 
-**Implementation Location:**  
-`ChatService.cs`, `ChatRepository.cs`, `MessageRepository.cs`, `ChatHub.cs`, `SignalRRealtimeChatNotifier.cs`
-
-**Special Details:**
-- Chat is one-to-one (seller ↔ customer), enforced by repository queries.
-- Messages are transient until explicitly saved to database.
-- `SignalRRealtimeChatNotifier` broadcasts via groups (e.g., "chat-{chatId}").
-- Validation ensures users are participants in the chat before sending.
-
----
-
-### 5.6 Customer Feedback & Rating System
-**Description:**  
-After a SellerOrder is delivered, customers submit ratings and comments. Sellers can view aggregated feedback for their products.
-
-**Main Endpoints:**
-- `POST /api/orders/{id}/feedback` – Submit review (already listed in 5.4)
-- `GET /api/products/{id}/feedbacks` – Seller retrieves feedback for their product
-
-**Implementation Location:**  
-`FeedbackService` (implicit in `OrderService`), `FeedbackRepository.cs`, `FeedbackValidator.cs`
-
-**Special Details:**
-- Feedback is immutable once submitted (no edit/delete).
-- Rating is typically numeric (1–5); comment is optional.
-- Seller access verified via seller-product relationship.
+**Validations:**
+- Email must be unique
+- Store name must be unique
+- Password complexity validated
 
 ---
 
-### 5.7 Email Notifications & Background Jobs
-**Description:**  
-Time-consuming email operations (welcome, account changes, order updates) are offloaded to Hangfire background jobs, preventing request blocking.
+#### POST /api/Auth/Login
+**Access Level:** Public (AllowAnonymous)  
+**Purpose:** Authenticate user and receive JWT token  
 
-**Job Types:**
+**Request Body (`LoginDto`):**
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": 1,
+      "email": "user@example.com",
+      "fullName": "John Doe",
+      "role": "Customer",
+      "isActive": true
+    }
+  }
+}
+```
+
+**Error Responses:**
+- `401 Unauthorized` – Invalid credentials or user not found
+- `401 Unauthorized` – User account is deactivated
+
+**Token Details:**
+- Signed with HS256
+- Includes claims: userId, role, email
+- Expires after `Jwt.AccessTokenExpirySeconds` (default: 60 seconds)
+- Include in subsequent requests: `Authorization: Bearer <token>`
+
+---
+
+#### GET /api/Auth/Users/Profile
+**Access Level:** Authenticated (any role)  
+**Purpose:** Retrieve current authenticated user's profile  
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Profile retrieved",
+  "data": {
+    "id": 1,
+    "email": "user@example.com",
+    "fullName": "John Doe",
+    "role": "Customer",
+    "phoneNumber": "+1234567890",
+    "isActive": true,
+    "createdAt": "2024-01-20T10:30:00Z"
+  }
+}
+```
+
+---
+
+#### PATCH /api/Auth/Users/{id}
+**Access Level:** Authenticated (Admin only)  
+**Purpose:** Activate or deactivate a user account  
+**Path Parameter:** `id` (integer) – User ID to modify  
+
+**Request Body (`UserActivationDto`):**
+```json
+{
+  "isActive": true
+}
+```
+
+**Response (200 OK):**
+- Updated user with new IsActive status
+- Status change email sent to user (activation or deactivation notification)
+
+**Authorization Checks:**
+- User must be Admin role
+- Target user must exist
+
+---
+
+### 5.2 Product Management Endpoints
+
+#### GET /api/Products
+**Access Level:** Public (AllowAnonymous)  
+**Purpose:** List all available products  
+
+**Query Parameters:**
+- `mine` (boolean, optional) – If true and authenticated as Seller, returns only that seller's products
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Products retrieved",
+  "data": [
+    {
+      "id": 1,
+      "sellerId": 2,
+      "name": "Wireless Mouse",
+      "productSlug": "wireless-mouse-logitech",
+      "description": "Precision wireless mouse",
+      "category": "Accessories",
+      "stockQuantity": 150,
+      "price": 29.99,
+      "isAvailable": true,
+      "createdAt": "2024-01-15T08:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+#### GET /api/Products/{id}
+**Access Level:** Public (AllowAnonymous)  
+**Purpose:** Retrieve details of a specific product  
+**Path Parameter:** `id` (integer) – Product ID  
+
+**Response (200 OK):** Single product object (same schema as list endpoint)
+
+---
+
+#### POST /api/Products
+**Access Level:** Authenticated (Seller only)  
+**Purpose:** Create a new product in seller's catalog  
+
+**Request Body (`ProductDto`):**
+```json
+{
+  "name": "USB-C Cable",
+  "productSlug": "usb-c-cable-braided",
+  "description": "Durable braided USB-C charging cable",
+  "category": "Cables & Adapters",
+  "stockQuantity": 500,
+  "price": 14.99,
+  "isAvailable": true
+}
+```
+
+**Response (200 OK):**
+- Created product with auto-generated `id` and `sellerId` from JWT token
+
+**Validations:**
+- All required fields present
+- Price > 0
+- Stock quantity >= 0
+- Product name and slug unique per seller (enforced at repository level)
+
+---
+
+#### PUT /api/Products?id={id}
+**Access Level:** Authenticated (Seller only)  
+**Purpose:** Update an existing product  
+**Query Parameter:** `id` (integer) – Product ID  
+
+**Request Body:** Same as POST (ProductDto)
+
+**Response (200 OK):** Updated product
+
+**Authorization Check:** Seller can only update own products (`ProductBelongsToSellerAsync()` verification)
+
+---
+
+#### DELETE /api/Products/{id}
+**Access Level:** Authenticated (Seller only)  
+**Purpose:** Soft-delete a product from catalog  
+**Path Parameter:** `id` (integer) – Product ID  
+
+**Response (200 OK):** Confirmation message
+
+**Behavior:**
+- Sets `IsAvailable = false` (soft delete)
+- Existing orders referencing this product remain unaffected
+- Product data retained for audit trails
+
+**Authorization Check:** Seller can only delete own products
+
+---
+
+#### GET /api/Products/{id}/Feedbacks
+**Access Level:** Authenticated (Seller only)  
+**Purpose:** Retrieve all customer feedback for a product  
+**Path Parameter:** `id` (integer) – Product ID  
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Feedbacks retrieved",
+  "data": [
+    {
+      "id": 1,
+      "sellerOrderId": 10,
+      "customerId": 3,
+      "rating": 5,
+      "comment": "Excellent product, fast delivery!",
+      "createdAt": "2024-01-18T14:30:00Z"
+    }
+  ]
+}
+```
+
+**Authorization Check:** Only the product's seller can access
+
+---
+
+#### GET /api/Products/{id}/Orders
+**Access Level:** Authenticated (Seller only)  
+**Purpose:** Retrieve all seller orders (line items) for a product  
+**Path Parameter:** `id` (integer) – Product ID  
+
+**Response (200 OK):** Array of seller orders for this product
+
+**Authorization Check:** Only the product's seller can access
+
+---
+
+### 5.3 Order Management Endpoints
+
+#### GET /api/Orders
+**Access Level:** Authenticated (any role)  
+**Purpose:** Retrieve orders (filtered by user role)  
+
+**Response Filtering:**
+- **Customer:** Returns only their orders
+- **Seller:** Returns all SellerOrder items from their products
+- **Admin:** Returns all orders in system
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Orders retrieved",
+  "data": [
+    {
+      "id": 100,
+      "userId": 3,
+      "orderDate": "2024-01-24T12:00:00Z",
+      "totalAmount": 1059.97,
+      "sellerOrders": [
+        {
+          "id": 1,
+          "productId": 1,
+          "productName": "Wireless Mouse",
+          "quantity": 2,
+          "unitPrice": 29.99,
+          "status": 1,
+          "createdAt": "2024-01-24T12:00:00Z"
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+#### POST /api/Orders
+**Access Level:** Authenticated (Customer only)  
+**Purpose:** Create a new order  
+
+**Request Body (`OrderDto`):**
+```json
+{
+  "sellerOrders": [
+    {
+      "productId": 1,
+      "quantity": 2
+    },
+    {
+      "productId": 5,
+      "quantity": 1
+    }
+  ]
+}
+```
+
+**Response (200 OK):**
+- Created order with SellerOrder line items (one per seller)
+- Initial status: `Pending`
+
+**Validations:**
+- All products exist and are available
+- Stock quantity sufficient for each product
+- Quantity > 0
+
+**Transaction:** Atomic operation
+- Order header created
+- SellerOrder items created
+- Stock decremented for each product
+- All committed or all rolled back
+
+**Side Effects:**
+- Order confirmation email queued for customer
+- Seller notification for incoming orders
+
+---
+
+#### PUT /api/Orders/{id}
+**Access Level:** Authenticated (Seller, Admin, or Customer)  
+**Purpose:** Update seller order status  
+**Path Parameter:** `id` (integer) – SellerOrder ID  
+
+**Request Body (`UpdateSellerOrderStatusDto`):**
+```json
+{
+  "status": 2
+}
+```
+
+**Status Enum Values:**
+- `1` = Pending
+- `2` = Processing (Seller accepted)
+- `3` = InWarehouse
+- `4` = Shipped
+- `5` = Delivered
+- `6` = Cancelled
+
+**Allowed Transitions by Role:**
+
+| Role | Allowed Transitions |
+|------|-------------------|
+| **Seller** | Pending→Processing, Pending→Cancelled |
+| **Admin** | Any transition (override capability) |
+| **Customer** | Pending→Cancelled (before seller accepts) |
+
+**Response (200 OK):** Updated SellerOrder
+
+**Error Responses:**
+- `409 Conflict` – Invalid status transition
+- `403 Forbidden` – User not authorized to update
+
+**Side Effects:**
+- Email notification sent on key transitions
+- Feedback becomes available after status reaches Delivered
+
+---
+
+#### POST /api/Orders/{id}/Feedback
+**Access Level:** Authenticated (Customer only)  
+**Purpose:** Submit feedback/review for a delivered product  
+**Path Parameter:** `id` (integer) – SellerOrder ID  
+
+**Request Body (`FeedbackDto`):**
+```json
+{
+  "rating": 5,
+  "comment": "Excellent quality and fast shipping!"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Feedback submitted successfully",
+  "data": {
+    "id": 50,
+    "sellerOrderId": 10,
+    "customerId": 3,
+    "rating": 5,
+    "comment": "Excellent quality and fast shipping!",
+    "createdAt": "2024-01-24T13:00:00Z"
+  }
+}
+```
+
+**Validations:**
+- SellerOrder must be in **Delivered** status
+- Rating must be 1-5
+- Customer must own the parent Order
+- No duplicate feedback for same SellerOrder
+- Feedback is immutable (no edit/delete after creation)
+
+**Error Responses:**
+- `400 BadRequest` – Order not yet delivered or validation failed
+- `409 Conflict` – Feedback already exists for this SellerOrder
+
+---
+
+### 5.4 Real-Time Chat Endpoints
+
+#### POST /api/Chat
+**Access Level:** Authenticated (any role)  
+**Purpose:** Create or retrieve one-to-one chat  
+
+**Request Body (`CreateChatDto`):**
+```json
+{
+  "sellerId": 2
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Chat created or retrieved",
+  "data": {
+    "id": 15,
+    "sellerId": 2,
+    "customerId": 3,
+    "createdAt": "2024-01-20T09:00:00Z",
+    "isActive": true,
+    "messages": []
+  }
+}
+```
+
+**Behavior:**
+- Creates new chat if none exists between seller and current user
+- Returns existing chat if already created
+- Enforces one-to-one relationship
+
+---
+
+#### GET /api/Chat/{id}
+**Access Level:** Authenticated (chat participants only)  
+**Purpose:** Retrieve chat history with messages  
+**Path Parameter:** `id` (integer) – Chat ID  
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Chat retrieved",
+  "data": {
+    "id": 15,
+    "sellerId": 2,
+    "customerId": 3,
+    "createdAt": "2024-01-20T09:00:00Z",
+    "messages": [
+      {
+        "id": 1,
+        "chatId": 15,
+        "senderId": 3,
+        "content": "Hi, I'm interested in your product",
+        "timeSent": "2024-01-20T09:10:00Z",
+        "isRead": true
+      },
+      {
+        "id": 2,
+        "chatId": 15,
+        "senderId": 2,
+        "content": "Thanks! I can help you with this.",
+        "timeSent": "2024-01-20T09:15:00Z",
+        "isRead": true
+      }
+    ]
+  }
+}
+```
+
+**Authorization Check:** User must be chat participant (seller or customer)
+
+---
+
+#### POST /api/Chat/{id}/Message
+**Access Level:** Authenticated (chat participants only)  
+**Purpose:** Send message (persisted and broadcast via SignalR)  
+**Path Parameter:** `id` (integer) – Chat ID  
+
+**Request Body (`SendMessageDto`):**
+```json
+{
+  "content": "When will this item be shipped?"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Message sent successfully",
+  "data": {
+    "id": 3,
+    "chatId": 15,
+    "senderId": 3,
+    "content": "When will this item be shipped?",
+    "timeSent": "2024-01-20T09:20:00Z",
+    "isRead": false
+  }
+}
+```
+
+**Real-Time Behavior:**
+- Message persisted to database
+- Broadcast to SignalR group $`{userId}`
+- Connected clients receive notification instantly
+
+**Validations:**
+- Sender must be chat participant
+- Content not empty
+- Chat must be active (not closed)
+
+---
+
+#### PATCH /api/Chat/{id}/MarkAsRead
+**Access Level:** Authenticated (chat participants only)  
+**Purpose:** Mark all unread messages as read  
+**Path Parameter:** `id` (integer) – Chat ID  
+
+**Response (200 OK):** Confirmation message
+
+---
+
+#### PATCH /api/Chat/{id}/Close
+**Access Level:** Authenticated (chat participants only)  
+**Purpose:** Close a chat thread  
+**Path Parameter:** `id` (integer) – Chat ID  
+
+**Response (200 OK):** Confirmation message
+
+**Behavior:**
+- Marks chat as inactive
+- Participants cannot send new messages
+- Chat history remains retrievable
+
+---
+
+## 6. Implementation Architecture & Key Services
+
+### 6.1 User Authentication Service
+**Implementation Location:** `AuthService.cs`, `AuthRepository.cs`, `AuthValidator.cs`, `JwtService.cs`
+
+**Key Workflows:**
+
+1. **Customer Registration**
+   - Validates email uniqueness
+   - Hashes password via `PasswordHasher<ApplicationUser>`
+   - Creates ApplicationUser + CustomerProfile in transaction
+   - Sets IsActive = true (auto-activated)
+   - Enqueues welcome email job
+   - Customer can immediately log in
+
+2. **Seller Registration**
+   - Validates email and store name uniqueness
+   - Hashes password
+   - Creates ApplicationUser + SellerProfile
+   - Sets IsActive = false (awaiting admin approval)
+   - Enqueues admin notification email
+   - Seller cannot log in until admin activates
+
+3. **Login Process**
+   - Validates email exists and credentials correct
+   - Checks IsActive flag (rejects deactivated users)
+   - Generates JWT token with claims (userId, role, email)
+   - Token signed with HS256 using key from `Jwt.Key`
+   - Token expires after `Jwt.AccessTokenExpirySeconds`
+
+4. **Token Validation**
+   - Verified on every protected endpoint
+   - Signature validated with HS256 key
+   - Expiration checked; expired tokens rejected
+   - Claims extracted for authorization checks
+
+**Special Details:**
+- JWT issued at login; bearer scheme for subsequent requests
+- `GlobalExceptionHandlerMiddleware` catches auth errors and formats responses
+- Deactivated users cannot log in regardless of valid credentials
+- Email notifications sent asynchronously (no blocking on welcome/activation emails)
+
+---
+
+### 6.2 Product Management Service
+**Implementation Location:** `ProductService.cs`, `ProductRepository.cs`, `ProductValidator.cs`
+
+**Key Features:**
+- **Seller Isolation:** All product operations verify `ProductBelongsToSellerAsync()` before allowing access
+- **Stock Management:** Stock decremented atomically when orders created; validated before order processing
+- **Soft Deletion:** Products marked unavailable (IsAvailable = false) retained for audit; orders unaffected
+- **SEO Slugs:** Products include human-readable slugs for future URL routing
+
+---
+
+### 6.3 Order Processing Service
+**Implementation Location:** `OrderService.cs`, `OrderRepository.cs`, `OrderValidator.cs`
+
+**Order Creation Workflow:**
+1. Receives OrderDto with line items (productId + quantity pairs)
+2. Validates all products exist, are available, and have sufficient stock
+3. Creates Order header (aggregates multiple sellers' products)
+4. Creates SellerOrder items (one per unique seller in cart)
+5. Decrements stock for each product
+6. All operations in single DbContext transaction (atomic)
+7. Enqueues order confirmation email
+8. Returns 400 BadRequest if any validation fails
+
+**Status State Machine:**
+- **Seller:** Pending→Processing, Pending→Cancelled
+- **Admin:** Any transition (override capability)
+- **Customer:** Pending→Cancelled only
+
+**Feedback Processing:**
+- Only available after SellerOrder status = Delivered
+- Validates customer owns parent Order
+- Prevents duplicate feedback per SellerOrder
+- Feedback is immutable (no edit/delete)
+
+---
+
+### 6.4 Real-Time Chat Service
+**Implementation Location:** `ChatService.cs`, `ChatRepository.cs`, `ChatHub.cs`, `SignalRRealtimeChatNotifier.cs`
+
+**Chat Creation:**
+- One-to-one relationship enforced (seller ↔ customer pair)
+- Queries for existing chat before creating new
+- Returns existing if duplicate creation attempted
+
+**Message Broadcasting:**
+- Messages persisted to database
+- Broadcast via SignalR group $`{userId}`
+- Connected clients receive real-time notifications
+- IsRead flag tracks message state for UI
+
+**WebSocket Hub:** ChatHub at `/hubs/chat` handles real-time connections and broadcast logic
+
+---
+
+### 6.5 Email & Background Jobs
+**Implementation Location:** `HangfireBackgroundJobService.cs`, `EmailJob.cs`, `EmailSettings` configuration
+
+**Background Job Queue:**
 - `EnqueueCustomerWelcomeEmailJob()` – Welcome email on customer registration
 - `EnqueueAccountActivationEmailJob()` – Account re-enabled notification
 - `EnqueueAccountDeactivationEmailJob()` – Account disabled notification
 
-**Implementation Location:**  
-`HangfireBackgroundJobService.cs`, `EmailJob.cs`, `EmailSettings` configuration
+**Hangfire Configuration:**
+- Uses SQL Server for persistence (configured via `HangFireDbConnection`)
+- SMTP credentials stored in `EmailSettings` (Gmail app password)
+- Automatic retry logic and dead-letter queue for failed jobs
+- No request blocking; all email operations asynchronous
 
-**Special Details:**
-- Hangfire uses SQL Server (configured in appsettings as `HangFireDbConnection`).
-- SMTP credentials (Gmail app password) stored in `EmailSettings`.
-- Retry logic and dead-letter handling handled by Hangfire.
-
----
-
-### 5.8 Admin User Governance
-**Description:**  
-Admins can activate/deactivate user accounts, triggering notifications. Deactivated users cannot log in.
-
-**Main Endpoints:**
-- `PATCH /api/auth/users/{id}` – Toggle user active status
-
-**Implementation Location:**  
-`AuthService.ChangeUserActivationStatus()`, `UserActivationDto`
-
-**Special Details:**
-- Validation ensures user exists before status change.
-- Email notifications automatically triggered based on new status.
-- Role enforcement via `[Authorize(Roles = AppRoles.Admin)]`.
 
 ---
 
-## 6. Security & Authorization
+## 7. Security & Authorization
 
 **Authentication Mechanism:**  
 JWT tokens are issued at login. Each token encodes the user ID, role, email, and expiration. Clients include the token in the `Authorization: Bearer <token>` header. The server validates the signature (HS256 with a shared secret key) and checks expiration.
@@ -407,7 +948,7 @@ This ensures a Seller cannot modify another Seller's products or orders.
 
 ---
 
-## 7. Data Access & Persistence
+## 8. Data Access & Persistence
 
 **Database:**  
 SQL Server (LocalDB for development, Docker container for deployment). Configured via connection string in appsettings.
@@ -463,7 +1004,7 @@ Not explicitly configured; navigation properties are loaded on-demand or through
 
 ---
 
-## 8. Error Handling & Validation
+## 9. Error Handling & Validation
 
 **Global Exception Handling:**  
 All unhandled exceptions are caught by `GlobalExceptionHandlerMiddleware`, logged, and returned as a standardized JSON response. In development, the exception message is included; in production, a generic "internal server error" message is sent.
@@ -530,7 +1071,7 @@ public class ProductValidator : AbstractValidator<ProductDto>
 
 ---
 
-## 9. Current Limitations & Known Technical Debt
+## 10. Current Limitations & Known Technical Debt
 
 1. **No Payment Integration**: Stripe integration is planned but not yet implemented. Orders are created but no actual payments are processed. (See Todos.txt)
 
@@ -554,10 +1095,10 @@ public class ProductValidator : AbstractValidator<ProductDto>
 
 ---
 
-## 10. Getting Started / Setup Instructions
+## 11. Getting Started / Setup Instructions
 
 ### Prerequisites
-- **.NET SDK**: 6.0 or later
+- **.NET SDK**: 8.0 or later
 - **SQL Server**: LocalDB (Windows) or Docker
 - **Visual Studio** or **VS Code** with C# extension
 - **Git** (for cloning)
@@ -566,8 +1107,8 @@ public class ProductValidator : AbstractValidator<ProductDto>
 
 #### 1. Clone & Restore Dependencies
 ```bash
-git clone <repository-url>
-cd EcommerceAppApi
+git clone https://github.com/ahsanalikhan-folio3/EcommerceWebApi
+cd EcommerceWebApi
 dotnet restore
 ```
 
@@ -576,10 +1117,10 @@ dotnet restore
 - Connection string is already configured in `appsettings.json` for LocalDB.
 - Ensure SQL Server Express LocalDB is installed.
 
-**Option B: Using Docker**
+**Option B: Using Docker (Currently not working/stable)**
 - Run SQL Server container:
   ```bash
-  docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=Strong!Pass123" \
+  docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=PASS!WEAK4356" \
     -p 1433:1433 --name sqlserver \
     mcr.microsoft.com/mssql/server:latest
   ```
@@ -596,24 +1137,44 @@ This creates the database schema.
 ```bash
 dotnet run
 ```
-API starts on `https://localhost:5001` (or port specified in `launchSettings.json`).
+API starts on `https://localhost:5208` (or port specified in `launchSettings.json`).
 
 #### 5. Access Swagger UI
-Navigate to `https://localhost:5001/swagger` to explore endpoints interactively.
+Navigate to `https://localhost:5208/swagger` to explore endpoints interactively.
 
 ### Important Environment Variables / Appsettings Keys
+```json
+{
+    "Logging": {
+        "LogLevel": {
+            "Default": "Information",
+            "Microsoft.AspNetCore": "Warning"
+        }
+    },
+    "AllowedHosts": "*",
+    "ConnectionStrings": {
+        "DbConnection": "CONNECTION_STRING_SQL_SERVER_DB",
+        "DbConnectionThroughDocker": "CONNECTION_STRING_SQL_SERVER_DB_IN_DOCKER",
+        "HangFireDbConnection": "CONNECTION_STRING_HANGFIRE_DB"
+    },
+    "Jwt": {
+        "Key": "THIS_SHOULD_BE_A_LONG_RANDOM_SECRET_KEY_32+_CHARS",
+        "Issuer": "EcommerceWebApi",
+        "Audience": "EcommerceWebApiUsers",
+        "AccessTokenExpirySeconds": 60
+    },
+    "EmailSettings": {
+        "Host": "YOUR_HOST_GMAIL",
+        "Port": 123,
+        "Username": "USERNAME",
+        "AppPassword": "XXXX XXXX XXXX XXXX",
+        "EnableSsl": true,
+        "FromName": "NAME",
+        "FromEmail": "EMAIL"
+    }
+}
 
-| Key | Purpose | Example |
-|-----|---------|---------|
-| `ConnectionStrings.DbConnection` | Database connection (LocalDB) | `Data Source=(localdb)\\...` |
-| `Jwt.Key` | Secret key for token signing | `THIS_SHOULD_BE_A_LONG_RANDOM_...` |
-| `Jwt.Issuer` | Token issuer claim | `EcommerceWebApi` |
-| `Jwt.Audience` | Token audience claim | `EcommerceWebApiUsers` |
-| `Jwt.AccessTokenExpirySeconds` | Token validity (seconds) | `60` |
-| `EmailSettings.Host` | SMTP server | `smtp.gmail.com` |
-| `EmailSettings.Port` | SMTP port | `587` |
-| `EmailSettings.Username` | SMTP account | `your-email@gmail.com` |
-| `EmailSettings.AppPassword` | SMTP app password (Gmail) | `xxxx xxxx xxxx xxxx` |
+```
 
 ### Seed Data
 Currently, no automated seed data script exists. To populate test data:
@@ -630,11 +1191,30 @@ Currently, no automated seed data script exists. To populate test data:
 ### Key Launch Settings (launchSettings.json)
 ```json
 "profiles": {
-    "EcommerceApp.Api": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger/index.html",
+      "applicationUrl": "http://localhost:5208",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "https": {
         "commandName": "Project",
+        "dotnetRunMessages": true,
         "launchBrowser": true,
-        "launchUrl": "swagger",
-        "applicationUrl": "https://localhost:7001;http://localhost:5001",
+        "launchUrl": "swagger/index.html",
+        "applicationUrl": "https://localhost:7131;http://localhost:5208",
+        "environmentVariables": {
+            "ASPNETCORE_ENVIRONMENT": "Development"
+        }
+    },
+    "IIS Express": {
+        "commandName": "IISExpress",
+        "launchBrowser": true,
+        "launchUrl": "swagger/index.html",
         "environmentVariables": {
             "ASPNETCORE_ENVIRONMENT": "Development"
         }
@@ -646,6 +1226,22 @@ Currently, no automated seed data script exists. To populate test data:
 
 ## Conclusion
 
-The **EcommerceApp API** is a well-structured, enterprise-ready e-commerce backend leveraging modern C# and .NET patterns. Its Clean Architecture separates concerns effectively, making the codebase maintainable and testable. The role-based authorization, real-time chat, and async email jobs demonstrate thoughtful engineering. Future enhancements—payment processing, full-text search, audit logging, and rate limiting—will further strengthen the platform's capabilities and security posture.
+The **EcommerceApp API** is a professionally-architected, enterprise-ready e-commerce backend demonstrating modern C# and .NET best practices. Its Clean Architecture separates concerns effectively across domain, application, infrastructure, and API layers, making the codebase maintainable, testable, and extensible. 
 
-For questions or contributions, refer to the [Contributing Guidelines] (if any) or contact the development team.
+**Architectural Highlights:**
+- Comprehensive role-based authorization with JWT security
+- Atomic order processing with multi-seller support
+- Real-time communication via SignalR WebSocket
+- Asynchronous email processing (no request blocking)
+- Standardized error handling and validation
+- Unit of Work pattern for data access consistency
+
+**Future Enhancement Opportunities:**
+- Payment processing integration (Stripe/PayPal)
+- Full-text search for product discovery
+- Audit logging for compliance
+- Rate limiting and throttling
+- JWT refresh token mechanism (currently limited to 60-second expiry)
+- Optimistic locking for concurrent order updates
+
+For questions, contributions, or additional documentation, refer to code comments or contact the development team.

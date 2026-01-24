@@ -7,5 +7,6 @@ namespace EcommerceApp.Application.Interfaces.Chats
         Task<Message> GetMessageById(int id);
         Task<IEnumerable<Message>> GetMessagesByChatId(int chatId);
         Task<Message> AddMessage(Message message);
+        Task MarkMessagesAsRead(int chatId, string senderRole);
     }
 }

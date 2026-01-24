@@ -40,6 +40,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
             ClockSkew = TimeSpan.Zero
         };
+
+        // For Authorized Hubs.
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/hubs/chat"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
 builder.Services.AddSwaggerGen(c =>
 {
@@ -78,8 +96,8 @@ builder.Services.AddCors(opt =>
     {
         builder.WithOrigins("http://localhost:3000") // react app origin
                .AllowAnyHeader()
-               .AllowAnyMethod();
-               //.AllowCredentials();
+               .AllowAnyMethod()
+               .AllowCredentials();
     });
 });
 
@@ -105,3 +123,5 @@ app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();
+
+

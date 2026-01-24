@@ -55,5 +55,15 @@ namespace EcommerceApp.Api.Controllers
             if (result != null) return Ok(ApiResponse.SuccessResponse("Chat fetched successfully", result));
             return NotFound(ApiResponse.ErrorResponse("Chat not found.", null));
         }
+
+        // Only the messages received by the requestor can be marked as read.
+        [Authorize(Roles = $"{AppRoles.Customer},{AppRoles.Seller}")]
+        [HttpPatch("{id}/MarkAsRead")]
+        public async Task<IActionResult> MarkMessagesAsRead(int id)
+        {
+            var result = await chatService.MarkMessagesAsRead(id);
+            if (result) return Ok(ApiResponse.SuccessResponse("Messages marked as read successfully", null));
+            return BadRequest(ApiResponse.ErrorResponse("Failed to mark messages as read.", null));
+        }
     }
 }

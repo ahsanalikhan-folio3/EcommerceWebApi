@@ -20,7 +20,7 @@ namespace EcommerceApp.Infrastructure.Repositories
 
         public async Task<Chat?> GetChatAlongWithMessages(int chatId)
         {
-            return await db.Chats.Include(m => m.Messages.OrderByDescending(m => m.MessagedAt)).FirstOrDefaultAsync(c => c.Id == chatId);
+            return await db.Chats.Include(m => m.Messages.OrderBy(m => m.MessagedAt)).FirstOrDefaultAsync(c => c.Id == chatId);
         }
 
         public async Task<Chat?> GetChatById(int id)

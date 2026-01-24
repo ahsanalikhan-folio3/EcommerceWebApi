@@ -68,9 +68,10 @@ namespace EcommerceApp.Application.Services
             // Update the chat's last messaged timestamp.
             chat.LastMessagedAt = DateTime.UtcNow;
             await uow.SaveChangesAsync();
+            var mappedMessage = mapper.Map<MessageDto>(result);
 
             string receiverId = (userId == chat.CustomerId ? chat.SellerId : chat.CustomerId).ToString();
-            await realtimeChatNotifier.SendMessageInRealtime(receiverId, sendMessageDto.Content);
+            await realtimeChatNotifier.SendMessageInRealtime(receiverId, mappedMessage);
 
             return true;
         }
@@ -80,6 +81,25 @@ namespace EcommerceApp.Application.Services
             if (chat is null) return null;
 
             return mapper.Map<ChatDto>(chat);
+        }
+
+        public async Task<bool> MarkMessagesAsRead(int chatId)
+        {
+            var chat = await uow.Chats.GetChatById(chatId);
+            if (chat is null) return false;
+
+            string senderRole = user.Role!;
+            int userId = user.GetUserIdInt();
+
+            // Ensure that the user is either the customer or the seller in the chat.
+            if (senderRole == AppRoles.Customer && chat.CustomerId != userId) return false;
+            if (senderRole == AppRoles.Seller && chat.SellerId != userId) return false;
+
+            // It will mark all messages in the chat not sent by the requestor as read.
+            await uow.Messages.MarkMessagesAsRead(chatId, senderRole);
+
+            await uow.SaveChangesAsync();
+            return true;
         }
     }
 }
