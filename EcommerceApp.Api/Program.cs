@@ -68,7 +68,7 @@ builder.Services.AddRateLimiter(rateLimiterOptions =>
             AppRoles.Customer => RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 200,
-                Window = TimeSpan.FromSeconds(1),
+                Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }),
             // A anonymous user can hit 100 requests per minute. 

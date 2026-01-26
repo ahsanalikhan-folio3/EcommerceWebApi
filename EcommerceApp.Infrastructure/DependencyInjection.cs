@@ -8,6 +8,7 @@ using EcommerceApp.Application.Interfaces.Feedbacks;
 using EcommerceApp.Application.Interfaces.Jobs;
 using EcommerceApp.Application.Interfaces.JobServices;
 using EcommerceApp.Application.Interfaces.Orders;
+using EcommerceApp.Application.Interfaces.ProductImages;
 using EcommerceApp.Application.Interfaces.Products;
 using EcommerceApp.Application.Interfaces.Realtime;
 using EcommerceApp.Application.Interfaces.Sellers;
@@ -34,6 +35,7 @@ namespace EcommerceApp.Infrastructure
             });
             services.AddHttpContextAccessor();
             services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IProductImageRepository, ProductImageRepository>();
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddScoped<IAdminRepository, AdminRepository>();
             services.AddScoped<ICustomerRepository, CustomerRepository>();

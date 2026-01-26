@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using EcommerceApp.Application.Dtos;
-using EcommerceApp.Application.Exceptions;
 using EcommerceApp.Application.Interfaces;
 using EcommerceApp.Application.Interfaces.Products;
 using EcommerceApp.Application.Interfaces.User;

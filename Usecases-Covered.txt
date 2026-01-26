@@ -46,3 +46,59 @@ Customer Cases:
 -> Chat can be between a seller and a customer.
 -> Messages are sent to the clients in realtime using the SignalR library.
 -> Both Sellers and Customer can see their chat history.
+
+ Others
+=========
+-> Added a policy based rate limiter which applies the following type of rate limiter for each role:
+->  ===========================================================
+    RATE LIMITER: RoleBasedRateLimiterPolicy
+    ===========================================================
+
+    [1] THE CONCEPT: "PARTITIONING"
+    -----------------------------------------------------------
+    Think of a "Partition" as a bucket. 
+    - If the Bucket Name = "Sellers", then 100 sellers are all 
+    throwing their requests into the SAME bucket. If one 
+    seller is fast, they empty the bucket for everyone else.
+    - If the Bucket Name = "Seller:10", then ONLY User 10 uses 
+    that bucket.
+
+    STRATEGY: We combine {Role} and {UserId} so that we can 
+    give different roles different "bucket sizes," but keep 
+    the buckets private to each individual user.
+
+    [2] THE LIMITS EXPLAINED
+    -----------------------------------------------------------
+    * ADMIN (Concurrency - 10)
+    - Unlike a timer, this counts "Right now." 
+    - An admin can have 10 tabs open doing heavy tasks. 
+    - The 11th request is blocked until one of the 10 finishes.
+
+    * SELLER (Fixed Window - 300 per Minute)
+    - Standard frequency check. 
+    - Good for dashboard users who click around frequently.
+
+    * CUSTOMER (Fixed Window - 200 per Minute)
+    - Allows 200 hits, but resets every single minute. 
+
+    * ANONYMOUS (Fixed Window - 100 per Minute)
+    - Identify by: IP Address.
+    - Prevents random scripts from hitting your login/register 
+        endpoints too hard.
+
+    [3] KEY BEHAVIORS
+    -----------------------------------------------------------
+    - REJECTION: If a user hits the limit, they get a 429 error.
+    - NO QUEUE: We set QueueLimit = 0. This means we don't make 
+    users "wait in line." We just say "No" immediately. 
+    This saves your server's RAM.
+    - RECOVERY: As soon as the Window (1 min or 1 sec) passes, 
+    the bucket refills automatically.
+
+    [4] IMPLEMENTATION RECAP
+    -----------------------------------------------------------
+    1. Extract Role/ID from User Claims.
+    2. If not logged in, use "Anonymous" + IP Address.
+    3. Build the string: "Seller:123".
+    4. Pass that string to the Limiter.
+    ===========================================================

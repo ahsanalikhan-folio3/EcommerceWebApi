@@ -6,6 +6,7 @@ namespace EcommerceApp.Infrastructure.Database
     public class ApplicationDbContext : DbContext
     {
         public DbSet<Product> Products { get; set; }
+        public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<SellerOrder> SellerOrders { get; set; }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
@@ -116,6 +117,13 @@ namespace EcommerceApp.Infrastructure.Database
             modelBuilder.Entity<SellerOrder>()
                 .HasIndex(x => new { x.OrderId, x.ProductId })
                 .IsUnique();
+
+            // ProductImages → Product
+            modelBuilder.Entity<ProductImage>()
+                .HasOne(x => x.CorrespondingProduct)
+                .WithMany(o => o.ProductImages)
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Feedback → Customer
             modelBuilder.Entity<Feedback>()
