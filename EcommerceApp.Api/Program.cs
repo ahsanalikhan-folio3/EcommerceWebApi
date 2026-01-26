@@ -1,11 +1,15 @@
-using EcommerceApp.Application;
+﻿using EcommerceApp.Application;
+using EcommerceApp.Application.Common;
 using EcommerceApp.Application.Filters;
 using EcommerceApp.Infrastructure;
 using EcommerceApp.Infrastructure.Hubs;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 
 // User Roles: [Admin, Seller, Customer]
 
@@ -20,6 +24,63 @@ builder.Services.AddHangfireServer();
 builder.Services.AddApplication();
 builder.Services.AddControllers(options => { options.Filters.Add<ValidationFilter>(); });
 builder.Services.AddSignalR();
+builder.Services.AddRateLimiter(rateLimiterOptions => 
+{
+    rateLimiterOptions.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    rateLimiterOptions.AddPolicy("RoleBasedRateLimiterPolicy", context =>
+    {
+        var role = context.User?.FindFirst(ClaimTypes.Role)?.Value ?? "Anonymous";
+        var userId = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+             context.Connection.RemoteIpAddress?.ToString() ?? "anonymous"; 
+
+        /*
+          - If two users get same partition key they share the same requests bucket which we dont want.
+          - A partition defines who shares a bucket
+            - Bad partition "seller"
+            - All sellers share limits ❌
+            
+            - Good partition "seller:42"
+            - Each seller has their own bucket ✅
+        */
+        var partitionKey = $"{role}:{userId}";
+
+        Console.WriteLine("RATELIMITER REACHED: ");
+        Console.WriteLine("Role: " + role);
+        Console.WriteLine("UserId: " + userId);
+
+        return role switch
+        {
+            // 10 concurrent admins can access the system without any rate limits on apis.
+            AppRoles.Admin => RateLimitPartition.GetConcurrencyLimiter(partitionKey, _ => new ConcurrencyLimiterOptions
+            {
+                PermitLimit = 10,
+                QueueLimit = 0
+            }),
+            // A seller user can hit 300 requests per minute.
+            AppRoles.Seller => RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 300,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }),
+            // A customer user can hit 200 requests per minute.
+            AppRoles.Customer => RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 200,
+                Window = TimeSpan.FromSeconds(1),
+                QueueLimit = 0
+            }),
+            // A anonymous user can hit 100 requests per minute. 
+            _ => RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }),
+        };
+    });
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -118,8 +179,9 @@ app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
-app.MapControllers();
+app.MapControllers().RequireRateLimiting("RoleBasedRateLimiterPolicy");
 app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();
