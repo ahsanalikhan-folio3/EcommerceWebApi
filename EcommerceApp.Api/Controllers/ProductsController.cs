@@ -110,5 +110,30 @@ namespace EcommerceApp.Api.Controllers
             if (orders is null) return NotFound(ApiResponse.ErrorResponse("Invalid id or Product not found.", null));
             return Ok(ApiResponse.SuccessResponse("Product orders fetched successfully.", orders));
         }
+        [Authorize(Roles = AppRoles.Seller)]
+        [HttpPost("{id}/Images")]
+        public async Task<IActionResult> AddProductImages(int id, [FromForm] ProductImageUploadDto productImageUploadDto)
+        {
+            // Check if product belongs to the seller
+            if (!(await productService.ProductBelongsToSellerAsync(id)))
+                return Unauthorized(ApiResponse.ErrorResponse("You are not authorized to access this resource.", null));
+
+            var result = await productService.AddProductImages(id, productImageUploadDto);
+            if (!result) return BadRequest(ApiResponse.ErrorResponse("Failed to add product images.", null));
+            return Ok(ApiResponse.SuccessResponse("Product images added successfully.", null));
+        }
+        [Authorize(Roles = AppRoles.Seller)]
+        [HttpDelete("{id}/Images/{imageId}")]
+        public async Task<IActionResult> DeleteProductImage(int id, int imageId)
+        {
+            // Check if product belongs to the seller
+            if (!(await productService.ProductBelongsToSellerAsync(id)))
+                return Unauthorized(ApiResponse.ErrorResponse("You are not authorized to access this resource.", null));
+
+            var result = await productService.DeleteProductImage(imageId);
+            if (!result) return BadRequest(ApiResponse.ErrorResponse("Failed to delete product image.", null));
+            return Ok(ApiResponse.SuccessResponse("Product image deleted successfully.", null));
+        }
+
     }
 }

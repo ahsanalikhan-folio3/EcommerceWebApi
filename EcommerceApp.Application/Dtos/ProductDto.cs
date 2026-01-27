@@ -1,4 +1,6 @@
-﻿namespace EcommerceApp.Application.Dtos
+﻿using Microsoft.AspNetCore.Http;
+
+namespace EcommerceApp.Application.Dtos
 {
     public class ProductDto
     {
@@ -20,5 +22,9 @@
         public required int StockQuantity { get; set; }
         public required decimal Price { get; set; }
         public required bool IsAvailable { get; set; }
+    }
+    public class ProductImageUploadDto
+    {
+        public ICollection<IFormFile> ImageFiles { get; set; } = null!;
     }
 }

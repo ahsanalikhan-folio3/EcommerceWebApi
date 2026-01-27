@@ -4,6 +4,8 @@ using EcommerceApp.Application.Interfaces;
 using EcommerceApp.Application.Interfaces.Products;
 using EcommerceApp.Application.Interfaces.User;
 using EcommerceApp.Domain.Entities;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 
 namespace EcommerceApp.Application.Services
 {
@@ -12,11 +14,15 @@ namespace EcommerceApp.Application.Services
         private readonly IUnitOfWork uow;
         private readonly IUserService user;
         private readonly IMapper mapper;
-        public ProductService(IUnitOfWork uow, IMapper mapper, IUserService user)
+        private readonly IWebHostEnvironment env;
+        private readonly IConfiguration configuration;
+        public ProductService(IUnitOfWork uow, IMapper mapper, IUserService user, IWebHostEnvironment env, IConfiguration configuration)
         {
             this.user = user;
             this.uow = uow;
             this.mapper = mapper;
+            this.env = env;
+            this.configuration = configuration;
         }
         public async Task<bool> ProductBelongsToSellerAsync(int productId)
         {
@@ -115,6 +121,76 @@ namespace EcommerceApp.Application.Services
         {
             var product = await uow.Products.GetProductById(productId);
             return product is not null;
+        }
+
+        public async Task<bool> AddProductImages(int productId, ProductImageUploadDto productImageUploadDto)
+        {
+            var imageFiles = productImageUploadDto.ImageFiles;
+            var product = await uow.Products.GetProductById(productId);
+            ICollection<ProductImage> productImages = new List<ProductImage>();
+
+            int initialCount = await uow.ProductImages.GetProductImagesCountByProductId(productId);
+            int ProductImageslimit = Convert.ToInt32(configuration["MaxLimits:ProductImages"] ?? "2");
+
+            // Check if adding these images would exceed the limit
+            if (initialCount + imageFiles.Count > ProductImageslimit)
+                return false;
+
+            ICollection<string> allowedExtensions = new HashSet<string> { ".jpg", ".jpeg", ".png", ".gif" };
+            long maxBytes = Convert.ToInt64(
+                configuration["MaxLimits:ProductImageInBytes"] ?? "1048576"
+            );
+
+            // Any invalid file found, return false
+            foreach (var imageFile in imageFiles)
+            {
+                // Validate file extension
+                string extension = Path.GetExtension(imageFile.FileName).ToLower();
+                if (!allowedExtensions.Contains(extension))
+                    return false;
+                // Validate file size
+                if (imageFile.Length > maxBytes)
+                    return false;
+            }
+
+            foreach (var imageFile in imageFiles)
+            {
+                // Logic to upload and associate image with product
+                DateTime createdAt = DateTime.UtcNow;
+                string extension = Path.GetExtension(imageFile.FileName).ToLower();
+                string fileName = $"{Guid.NewGuid()}{extension}"; 
+                string webRootPath = env.WebRootPath;
+                string directoryPath = Path.Combine(webRootPath, "images", "products", productId.ToString());
+
+                if (!Directory.Exists(directoryPath)) Directory.CreateDirectory(directoryPath);
+
+                string filePath = Path.Combine(directoryPath, fileName);
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    await imageFile.CopyToAsync(fileStream);
+
+                productImages.Add(new ProductImage() { ProductId = productId, CreatedAt = createdAt, ImageUrl = $"/images/products/{productId}/{fileName}" });
+            }
+
+            await uow.ProductImages.AddProductImages(productImages);
+            await uow.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteProductImage(int imageId)
+        {
+            var productImage = await uow.ProductImages.GetProductImageById(imageId);
+            if (productImage is null) return false;
+
+            string storedPath = productImage.ImageUrl.TrimStart('/');
+            string filePath = Path.Combine(env.WebRootPath, storedPath);
+
+            if (File.Exists(filePath)) File.Delete(filePath);
+
+            // Delete the Db record as well.
+            await uow.ProductImages.DeleteProductImageById(imageId);
+            await uow.SaveChangesAsync();
+
+            return true;
         }
     }
 }

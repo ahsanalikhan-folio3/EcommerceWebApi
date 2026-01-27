@@ -172,6 +172,8 @@ if (app.Environment.IsDevelopment())
 
 // Configure the HTTP request pipeline.
 
+app.UseStaticFiles(); 
+
 app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 

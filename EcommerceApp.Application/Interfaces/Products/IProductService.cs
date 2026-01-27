@@ -10,6 +10,8 @@ namespace EcommerceApp.Application.Interfaces.Products
         Task<List<GetProductDto>> GetAllSellerProducts();
         Task<GetProductDto?> GetProductById(int Id);
         Task<GetProductDto?> AddProduct(ProductDto Product);
+        Task<bool> AddProductImages(int productId, ProductImageUploadDto productImageUploadDto);
+        Task<bool> DeleteProductImage(int imageId);
         Task<bool> ProductBelongsToSellerAsync(int productId);
         Task<bool> ProductExistsAsync(int productId);
         Task<GetProductDto?> UpdateProduct(int Id, ProductDto Product);
