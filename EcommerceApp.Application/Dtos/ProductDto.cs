@@ -2,6 +2,11 @@
 
 namespace EcommerceApp.Application.Dtos
 {
+    public class ProductImageDto
+    {
+        public int Id { get; set; }
+        public required string ImageUrl { get; set; }
+    }
     public class ProductDto
     {
         public required string Name { get; set; }
@@ -22,6 +27,7 @@ namespace EcommerceApp.Application.Dtos
         public required int StockQuantity { get; set; }
         public required decimal Price { get; set; }
         public required bool IsAvailable { get; set; }
+        public required ICollection<ProductImageDto> ProductImages { get; set; }
     }
     public class ProductImageUploadDto
     {

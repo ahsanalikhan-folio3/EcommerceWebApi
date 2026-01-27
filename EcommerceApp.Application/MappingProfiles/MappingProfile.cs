@@ -12,7 +12,10 @@ namespace EcommerceApp.Application.MappingProfiles
             CreateMap<Product, ProductDto>().ReverseMap();
             CreateMap<Product, GetProductDto>().ReverseMap();
 
-            // Application User Mappings
+            // ProductImage Mappings
+            CreateMap<ProductImage, ProductImageDto>().ReverseMap();
+
+            // ApplicationUser Mappings
             CreateMap<ApplicationUser, RegisterUserDto>().ReverseMap();
             CreateMap<ApplicationUser, ApplicationUserDto>().ReverseMap();
 

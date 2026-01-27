@@ -29,7 +29,7 @@ namespace EcommerceApp.Infrastructure.Repositories
 
         public async Task<List<Product>> GetAllProducts()
         {
-            var result = await db.Products.ToListAsync();
+            var result = await db.Products.Include(pi => pi.ProductImages).ToListAsync();
             return result;
         }
 
