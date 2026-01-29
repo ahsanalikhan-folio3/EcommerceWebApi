@@ -2,10 +2,12 @@
 using EcommerceApp.Application.Common;
 using EcommerceApp.Application.Filters;
 using EcommerceApp.Infrastructure;
+using EcommerceApp.Infrastructure.Database;
 using EcommerceApp.Infrastructure.Hubs;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
@@ -19,7 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString(builder.Environment.IsDevelopment() ? "DbConnection" : "DbConnectionThroughDocker")!, builder.Configuration);
-builder.Services.AddHangfire(config => { config.UseSqlServerStorage(builder.Configuration.GetConnectionString("HangFireDbConnection")); });
+builder.Services.AddHangfire(config => { config.UseSqlServerStorage(builder.Configuration.GetConnectionString(builder.Environment.IsDevelopment() ? "HangFireDbConnection" : "DbConnectionThroughDocker")   ); });
 builder.Services.AddHangfireServer();
 builder.Services.AddApplication();
 builder.Services.AddControllers(options => { options.Filters.Add<ValidationFilter>(); });
@@ -163,6 +165,12 @@ builder.Services.AddCors(opt =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate(); // creates DB if missing + applies migrations
+}
 
 if (app.Environment.IsDevelopment())
 {

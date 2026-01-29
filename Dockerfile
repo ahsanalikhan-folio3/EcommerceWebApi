@@ -32,10 +32,6 @@ WORKDIR /app
 # Copy the published app from build stage
 COPY --from=build /app/publish .
 
-# Expose port (optional, but good for documentation)
-EXPOSE 5000
-EXPOSE 5001
-
 # Environment variable for ASP.NET Core
 ENV DOTNET_RUNNING_IN_CONTAINER=true
 ENV DOTNET_USE_POLLING_FILE_WATCHER=false
@@ -45,15 +41,3 @@ ENV ASPNETCORE_URLS=http://+:80
 
 # Entry point
 ENTRYPOINT ["dotnet", "EcommerceApp.Api.dll"]
-
-# # Copy entrypoint.sh into /app in the container
-# COPY entrypoint.sh /app/entrypoint.sh
-
-# # Make it executable
-# RUN chmod +x /app/entrypoint.sh
-
-# # Set the entrypoint
-# ENTRYPOINT ["/app/entrypoint.sh"]
-
-
-

@@ -1,0 +1,4 @@
+- Dockerize the environment.
+- Add Stripe payment integration.
+- Add admin adding functionality.
+- What about real time chat rate limiting??
