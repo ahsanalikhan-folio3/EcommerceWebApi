@@ -53,7 +53,7 @@ builder.Services.AddRateLimiter(rateLimiterOptions =>
 
         return role switch
         {
-            // 10 concurrent admins can access the system without any rate limits on apis.
+            // Max 10 concurrent requests; 11th is blocked immediately until one completes
             AppRoles.Admin => RateLimitPartition.GetConcurrencyLimiter(partitionKey, _ => new ConcurrencyLimiterOptions
             {
                 PermitLimit = 10,
