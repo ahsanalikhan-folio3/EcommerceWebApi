@@ -11,6 +11,7 @@ namespace EcommerceApp.Infrastructure.Database
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<SellerOrder> SellerOrders { get; set; }
+        public DbSet<CancelledOrder> CancelledOrders { get; set; }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<AdminProfile> AdminProfiles { get; set; }
         public DbSet<SellerProfile> SellerProfiles { get; set; }
@@ -136,7 +137,21 @@ namespace EcommerceApp.Infrastructure.Database
                 .HasIndex(x => new { x.OrderId, x.ProductId })
                 .IsUnique();
 
-            // ProductImages → Product
+            // SellerOrders → CancelledOrders (M : 1)
+            modelBuilder.Entity<CancelledOrder>()
+                .HasOne(x => x.CorrespondingSellerOrder)
+                .WithMany(o => o.CancelledOrders)
+                .HasForeignKey(x => x.SellerOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ApplicationUser → CancelledOrders (M : 1)
+            modelBuilder.Entity<CancelledOrder>()
+                .HasOne(x => x.CancelledByUser)
+                .WithMany(o => o.CancelledOrders)
+                .HasForeignKey(x => x.CancelledById)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ProductImages → Product (M : 1)
             modelBuilder.Entity<ProductImage>()
                 .HasOne(x => x.CorrespondingProduct)
                 .WithMany(o => o.ProductImages)

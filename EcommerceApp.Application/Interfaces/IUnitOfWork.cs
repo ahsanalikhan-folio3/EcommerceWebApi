@@ -1,5 +1,6 @@
 ﻿using EcommerceApp.Application.Interfaces.Admins;
 using EcommerceApp.Application.Interfaces.Auth;
+using EcommerceApp.Application.Interfaces.CancelledOrders;
 using EcommerceApp.Application.Interfaces.Chats;
 using EcommerceApp.Application.Interfaces.Customers;
 using EcommerceApp.Application.Interfaces.Feedbacks;
@@ -19,6 +20,7 @@ namespace EcommerceApp.Application.Interfaces
         public ICustomerRepository Customers { get; set; }
         public ISellerRepository Sellers { get; set; }
         public ISellerOrderRepository SellerOrders { get; set; }
+        public ICancelledOrderRepository CancelledOrders { get; set; }
         public IOrderRepository Orders { get; set; }
         public IFeedbackRepository Feedbacks { get; set; }
         public IChatRepository Chats { get; set; }

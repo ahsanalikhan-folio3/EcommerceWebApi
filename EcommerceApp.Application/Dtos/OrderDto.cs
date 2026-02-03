@@ -10,7 +10,6 @@ namespace EcommerceApp.Application.Dtos
     public class OrderDto
     {
         public required ICollection<SellerOrderDto> SellerOrders { get; set; }
-        public int UserId { get; set; }
     }
     public class GetOrderDto
     {
@@ -20,5 +19,6 @@ namespace EcommerceApp.Application.Dtos
     public class UpdateSellerOrderStatusDto
     {
         public OrderStatus Status { get; set; }
+        public string? Reason { get; set; }
     }
 }

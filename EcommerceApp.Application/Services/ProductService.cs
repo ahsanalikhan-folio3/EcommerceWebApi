@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Interfaces;
+using EcommerceApp.Application.Interfaces.CacheServices;
 using EcommerceApp.Application.Interfaces.Products;
 using EcommerceApp.Application.Interfaces.User;
 using EcommerceApp.Domain.Entities;
@@ -16,13 +17,19 @@ namespace EcommerceApp.Application.Services
         private readonly IMapper mapper;
         private readonly IWebHostEnvironment env;
         private readonly IConfiguration configuration;
-        public ProductService(IUnitOfWork uow, IMapper mapper, IUserService user, IWebHostEnvironment env, IConfiguration configuration)
+        private readonly ICacheService cacheService;
+        private readonly string cacheAllProductsKey;
+        public ProductService(IUnitOfWork uow, IMapper mapper, 
+            IUserService user, IWebHostEnvironment env, 
+            IConfiguration configuration, ICacheService cacheService)
         {
             this.user = user;
             this.uow = uow;
             this.mapper = mapper;
             this.env = env;
             this.configuration = configuration;
+            this.cacheService = cacheService;
+            this.cacheAllProductsKey = "products:all";
         }
         public async Task<bool> ProductBelongsToSellerAsync(int productId)
         {
@@ -42,6 +49,12 @@ namespace EcommerceApp.Application.Services
             Product AddedProduct = await uow.Products.AddProduct(NewProduct);
             await uow.SaveChangesAsync();
 
+            // Invalidate relevant cache entries
+            int sellerId = user.GetUserIdInt();
+            string cacheSellerProductsKey = $"seller:{sellerId}:products";
+            //await cacheService.RemoveData(cacheAllProductsKey);
+            //await cacheService.RemoveData(cacheSellerProductsKey);
+
             return mapper.Map<GetProductDto>(AddedProduct);
         }
         public async Task<GetProductDto?> UpdateProduct(int productId, ProductDto product)
@@ -54,13 +67,36 @@ namespace EcommerceApp.Application.Services
             dbProduct.UpdatedAt = DateTime.UtcNow;
             await uow.SaveChangesAsync();
 
+            // Invalidate relevant cache entries
+            int sellerId = user.GetUserIdInt();
+            string cacheSellerProductsKey = $"seller:{sellerId}:products";
+            string cacheProductKey = $"product:{productId}";
+
+            await cacheService.RemoveData(cacheAllProductsKey);
+            await cacheService.RemoveData(cacheSellerProductsKey);
+            await cacheService.RemoveData(cacheProductKey);
+
             return mapper.Map<GetProductDto>(dbProduct);
         }
+
         public async Task<List<GetProductDto>> GetAllSellerProducts()
         {
             int sellerId = user.GetUserIdInt();
+
+            // Here we create cached version of the seller's products for faster retrieval
+            string cacheSellerProductsKey = $"seller:{sellerId}:products";
+
+            // If seller products are cached, return from cache
+            var cachedProducts = await cacheService.GetData<List<GetProductDto>>(cacheSellerProductsKey);
+            if (cachedProducts is not null)
+                return cachedProducts;
+
             var products = await uow.Products.GetAllSellerProducts(sellerId);
-            return mapper.Map<List<GetProductDto>>(products);
+            var mappedProducts = mapper.Map<List<GetProductDto>>(products);
+            
+            await cacheService.SetData(cacheSellerProductsKey, mappedProducts, null);
+
+            return mappedProducts;
         }
 
         public async Task<bool> DeleteProduct(int id)
@@ -71,18 +107,44 @@ namespace EcommerceApp.Application.Services
             bool result = await uow.Products.DeleteProductById(id);
             await uow.SaveChangesAsync();
 
+            // Invalidate relevant cache entries
+            int sellerId = user.GetUserIdInt();
+            string cacheSellerProductsKey = $"seller:{sellerId}:products";
+            string cacheProductKey = $"product:{id}";
+
+            await cacheService.RemoveData(cacheAllProductsKey);
+            await cacheService.RemoveData(cacheSellerProductsKey);
+            await cacheService.RemoveData(cacheProductKey);
+
             return result;
         }
         public async Task<List<GetProductDto>> GetAllProducts()
         {
+            var cachedProducts = await cacheService.GetData<List<GetProductDto>>(cacheAllProductsKey);
+            if (cachedProducts is not null)
+                return cachedProducts;
+
             List<Product> products = await uow.Products.GetAllProducts();
-            return mapper.Map<List<GetProductDto>>(products);
+            var mappedProducts = mapper.Map<List<GetProductDto>>(products);
+            
+            await cacheService.SetData(cacheAllProductsKey, mappedProducts, null);
+
+            return mappedProducts;
         }
 
         public async Task<GetProductDto?> GetProductById(int id)
         {
+            var cacheProductKey = $"product:{id}";
+            var cachedProduct = await cacheService.GetData<GetProductDto>(cacheProductKey);
+            
+            if (cachedProduct is not null)
+                return cachedProduct;
+
             Product? product = await uow.Products.GetProductById(id);
-            return mapper.Map<GetProductDto>(product);
+            var mappedProduct = mapper.Map<GetProductDto>(product);
+
+            await cacheService.SetData(cacheProductKey, mappedProduct, null);
+            return mappedProduct;
         }
 
         public async Task<List<GetFeedbackDto>?> GetProductFeedbacks(int productId)

@@ -13,5 +13,7 @@
         public required ICollection<Chat> SellerChats { get; set; }
         public required ICollection<Chat> CustomerChats { get; set; }
         public required ICollection<Message> Messages { get; set; }
+        public required ICollection<CancelledOrder> CancelledOrders { get; set; }
+
     }
 }

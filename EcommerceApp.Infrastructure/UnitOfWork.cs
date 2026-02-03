@@ -1,6 +1,7 @@
 ﻿using EcommerceApp.Application.Interfaces;
 using EcommerceApp.Application.Interfaces.Admins;
 using EcommerceApp.Application.Interfaces.Auth;
+using EcommerceApp.Application.Interfaces.CancelledOrders;
 using EcommerceApp.Application.Interfaces.Chats;
 using EcommerceApp.Application.Interfaces.Customers;
 using EcommerceApp.Application.Interfaces.Feedbacks;
@@ -21,6 +22,7 @@ namespace EcommerceApp.Infrastructure
         public ISellerRepository Sellers { get; set; }
         public IAdminRepository Admins  { get; set; }
         public ISellerOrderRepository SellerOrders  { get; set; }
+        public ICancelledOrderRepository CancelledOrders  { get; set; }
         public IOrderRepository Orders  { get; set; }
         public IFeedbackRepository Feedbacks { get; set; }
         public IChatRepository Chats { get; set; }
@@ -31,8 +33,8 @@ namespace EcommerceApp.Infrastructure
             IProductImageRepository productsImages, IAuthRepository auth,
             ICustomerRepository customers, ISellerRepository sellers,
             IAdminRepository admins, ISellerOrderRepository sellerOrders,
-            IOrderRepository orders, IFeedbackRepository feedbacks, 
-            IChatRepository chats, IMessageRepository messages)
+            IOrderRepository orders, IFeedbackRepository feedbacks,
+            IChatRepository chats, IMessageRepository messages, ICancelledOrderRepository cancelledOrders)
         {
             this.db = db;
             Products = products;
@@ -46,6 +48,7 @@ namespace EcommerceApp.Infrastructure
             Feedbacks = feedbacks;
             Chats = chats;
             Messages = messages;
+            CancelledOrders = cancelledOrders;
         }
         public async Task SaveChangesAsync()
         {

@@ -18,11 +18,15 @@ using System.Threading.RateLimiting;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString(builder.Environment.IsDevelopment() ? "DbConnection" : "DbConnectionThroughDocker")!, builder.Configuration);
 builder.Services.AddHangfire(config => { config.UseSqlServerStorage(builder.Configuration.GetConnectionString(builder.Environment.IsDevelopment() ? "HangFireDbConnection" : "DbConnectionThroughDocker")   ); });
 builder.Services.AddHangfireServer();
+builder.Services.AddStackExchangeRedisCache(redisOptions =>
+{
+    redisOptions.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
+    redisOptions.InstanceName = "EcommerceAppRedisInstance";
+});
 builder.Services.AddApplication();
 builder.Services.AddControllers(options => { options.Filters.Add<ValidationFilter>(); });
 builder.Services.AddSignalR();
@@ -177,7 +181,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+    
 // Configure the HTTP request pipeline.
 
 app.UseStaticFiles(); 

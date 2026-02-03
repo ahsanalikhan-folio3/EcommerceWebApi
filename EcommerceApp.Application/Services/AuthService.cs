@@ -100,6 +100,7 @@ namespace EcommerceApp.Application.Services
             backgroundJobService.EnqueueCustomerWelcomeEmailJob(customer.Email);
 
             GetCustomerProfileDto mappedResult = mapper.Map<GetCustomerProfileDto>(customer);
+            mappedResult.Id = appUser.Id;
             return mappedResult;
         }
         public async Task<GetAdminProfileDto?> RegisterAdmin(AdminProfileDto admin)
@@ -118,6 +119,7 @@ namespace EcommerceApp.Application.Services
             await uow.SaveChangesAsync();
 
             GetAdminProfileDto mappedResult = mapper.Map<GetAdminProfileDto>(admin);
+            mappedResult.Id = appUser.Id;
             return mappedResult;
         }
 
@@ -138,6 +140,7 @@ namespace EcommerceApp.Application.Services
             backgroundJobService.EnqueueAccountReviewOfSellerOnRegistrationEmailJob(seller.Email);
 
             GetSellerProfileDto mappedResult = mapper.Map<GetSellerProfileDto>(seller);
+            mappedResult.Id = appUser.Id;
             return mappedResult;
         }
 

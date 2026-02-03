@@ -24,6 +24,8 @@ namespace EcommerceApp.Application.MappingProfiles
             CreateMap<AdminProfileDto, RegisterUserDto>().ReverseMap();
             CreateMap<GetAdminProfileDto, AdminProfileDto>().ReverseMap();
             CreateMap<AdminProfile, GetAdminProfileDto>()
+                 .ForMember(dest => dest.Id,
+                     opt => opt.MapFrom(src => src.User.Id))
                  .ForMember(dest => dest.Email,
                      opt => opt.MapFrom(src => src.User.Email))
                  .ForMember(dest => dest.PhoneNumber,
@@ -39,6 +41,8 @@ namespace EcommerceApp.Application.MappingProfiles
             CreateMap<CustomerProfileDto, RegisterUserDto>().ReverseMap();
             CreateMap<GetCustomerProfileDto, CustomerProfileDto>().ReverseMap();
             CreateMap<CustomerProfile, GetCustomerProfileDto>()
+                .ForMember(dest => dest.Id,
+                     opt => opt.MapFrom(src => src.User.Id))
                 .ForMember(dest => dest.Email,
                     opt => opt.MapFrom(src => src.User.Email))
                 .ForMember(dest => dest.PhoneNumber,
@@ -55,6 +59,8 @@ namespace EcommerceApp.Application.MappingProfiles
             CreateMap<SellerProfileDto, RegisterUserDto>().ReverseMap();
             CreateMap<GetSellerProfileDto, SellerProfileDto>().ReverseMap();
             CreateMap<SellerProfile, GetSellerProfileDto>()
+                .ForMember(dest => dest.Id,
+                    opt => opt.MapFrom(src => src.User.Id))
                 .ForMember(dest => dest.Email,
                     opt => opt.MapFrom(src => src.User.Email))
                 .ForMember(dest => dest.PhoneNumber,

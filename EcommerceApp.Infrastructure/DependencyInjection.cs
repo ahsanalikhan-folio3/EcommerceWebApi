@@ -2,6 +2,8 @@
 using EcommerceApp.Application.Interfaces;
 using EcommerceApp.Application.Interfaces.Admins;
 using EcommerceApp.Application.Interfaces.Auth;
+using EcommerceApp.Application.Interfaces.CacheServices;
+using EcommerceApp.Application.Interfaces.CancelledOrders;
 using EcommerceApp.Application.Interfaces.Chats;
 using EcommerceApp.Application.Interfaces.Customers;
 using EcommerceApp.Application.Interfaces.Feedbacks;
@@ -13,6 +15,7 @@ using EcommerceApp.Application.Interfaces.Products;
 using EcommerceApp.Application.Interfaces.Realtime;
 using EcommerceApp.Application.Interfaces.Sellers;
 using EcommerceApp.Application.Interfaces.User;
+using EcommerceApp.Infrastructure.CacheService;
 using EcommerceApp.Infrastructure.Database;
 using EcommerceApp.Infrastructure.Jobs;
 using EcommerceApp.Infrastructure.JobService;
@@ -45,10 +48,12 @@ namespace EcommerceApp.Infrastructure
             services.AddScoped<IFeedbackRepository, FeedbackRepository>();
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<IChatRepository, ChatRepository>();
+            services.AddScoped<ICancelledOrderRepository, CancelledOrderRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRealtimeChatNotifier, SignalRRealtimeChatNotifier>();
+            services.AddScoped<ICacheService, RedisCacheService>();
 
             // Search what is perfect for a background job.
             services.AddTransient<IEmailJob, EmailJob>();

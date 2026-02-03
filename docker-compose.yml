@@ -1,9 +1,9 @@
 version: "3.9"
 
 services:
-  dockersqlserver:
+  ecommerce-sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: dockersqlserver
+    container_name: ecommerce-sqlserver
     environment:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: "Strong!Pass123"
@@ -14,19 +14,19 @@ services:
     networks:
       - app-network
 
-  webapi:
+  ecommerce-webapi:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ecommerceapi
+    container_name: ecommerce-webapi
     depends_on:
-      - dockersqlserver
+      - ecommerce-sqlserver
+      - ecommerce-redis
     environment:
       ASPNETCORE_ENVIRONMENT: "Docker"
-      # ConnectionStrings__DefaultConnection: Server=dockersqlserver;Database=EcommerceWebApiDb;User Id=sa;Password=Strong!Pass123;
       MSSQL_SA_USER: sa
       MSSQL_SA_PASSWORD: Strong!Pass123   
-    command: ["./wait-for-sql.sh", "dockersqlserver", "dotnet", "EcommerceWebApi.dll"]
+    command: ["./wait-for-sql.sh", "ecommerce-sqlserver", "dotnet", "EcommerceWebApi.dll"]
     ports:
       - "5208:80"
     volumes:
@@ -34,9 +34,24 @@ services:
     networks:
       - app-network
 
+  ecommerce-redis:
+    image: redis:latest
+    container_name: ecommerce-redis
+    deploy:
+      resources:
+        limits:
+          memory: 4gb # redis total cache limit
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+
 volumes:
   sqlserver-data:
   product-images:
+  redis-data:
 
 networks:
   app-network:

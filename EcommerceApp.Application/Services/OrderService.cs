@@ -21,6 +21,27 @@ namespace EcommerceApp.Application.Services
             this.user = user;
             this.backgroundJobService = backgroundJobService;
         }
+        private async Task RestockAndLogCancellation (SellerOrder sellerOrder, UpdateSellerOrderStatusDto updateSellerOrderStatusDto)
+        {
+            var parentOrder = await uow.Orders.GetByIdAsync(sellerOrder!.OrderId);
+            var product = await uow.Products.GetProductById(sellerOrder!.ProductId);
+
+            // Update the parent order's total amount
+            parentOrder!.TotalAmount -= sellerOrder.Quantity * product!.Price;
+
+            // Restock the product
+            product.StockQuantity += sellerOrder.Quantity;
+
+            // Log the cancellation
+            await uow.CancelledOrders.AddCancelledOrderRecordAsync(new CancelledOrder
+            {
+                SellerOrderId = sellerOrder.Id,
+                CancelledById = user.GetUserIdInt(),
+                CancelledAt = DateTime.UtcNow,
+                Role = user.Role,
+                Reason = updateSellerOrderStatusDto.Reason,
+            });
+        }
         public async Task<bool> SellerOrderExistAsync (int sellerOrderId)
         {
             var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
@@ -65,6 +86,7 @@ namespace EcommerceApp.Application.Services
 
             // Add order
             mappedOrder.OrderDate = DateTime.UtcNow;
+            mappedOrder.UserId = user.GetUserIdInt();
             var createdOrder = await uow.Orders.CreateOrderAsync(mappedOrder);
 
             await uow.SaveChangesAsync();
@@ -137,10 +159,14 @@ namespace EcommerceApp.Application.Services
         }
         public async Task<bool> UpdateSellerOrderStatusForAdmin(int sellerOrderId, UpdateSellerOrderStatusDto updateSellerOrderStatusDto)
         {
+            var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
             await uow.SellerOrders.UpdateSellerOrderStatus(sellerOrderId, updateSellerOrderStatusDto.Status);
+            
+            if (updateSellerOrderStatusDto.Status == OrderStatus.Cancelled)
+                await RestockAndLogCancellation(sellerOrder!, updateSellerOrderStatusDto);
+
             await uow.SaveChangesAsync();
 
-            var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
             var parentOrder = await uow.Orders.GetByIdAsync(sellerOrder!.OrderId);
             var customer = await uow.Auth.GetUserByIdAsync(parentOrder!.UserId);
             backgroundJobService.EnqueueOrderStatusUpdateEmailJob(customer!.Email!, sellerOrderId, updateSellerOrderStatusDto.Status);
@@ -150,6 +176,11 @@ namespace EcommerceApp.Application.Services
         public async Task<bool> UpdateSellerOrderStatusForSeller(int sellerOrderId, UpdateSellerOrderStatusDto updateSellerOrderStatusDto)
         {
             var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
+            var parentOrder = await uow.Orders.GetByIdAsync(sellerOrder!.OrderId);
+            var product = await uow.Products.GetProductById(sellerOrder!.ProductId);
+
+            if (sellerOrder == null || parentOrder == null || product == null) return false;
+
             OrderStatus status = updateSellerOrderStatusDto.Status;
 
             // If order is in pending state, seller can only update it to either processing or cancelled.
@@ -158,9 +189,31 @@ namespace EcommerceApp.Application.Services
                 if (status == OrderStatus.Processing || status == OrderStatus.Cancelled)
                 {
                     await uow.SellerOrders.UpdateSellerOrderStatus(sellerOrderId, status);
+
+                    //if (status == OrderStatus.Cancelled)
+                    //{
+                    //    // Update the parent order's total amount
+                    //    parentOrder.TotalAmount -= sellerOrder.Quantity * product.Price;
+
+                    //    // Restock the product
+                    //    product.StockQuantity += sellerOrder.Quantity;
+
+                    //    // Log the cancellation
+                    //    await uow.CancelledOrders.AddCancelledOrderRecordAsync(new CancelledOrder
+                    //    {
+                    //        SellerOrderId = sellerOrderId,
+                    //        CancelledById = user.GetUserIdInt(),
+                    //        CancelledAt = DateTime.UtcNow,
+                    //        Role = user.Role,
+                    //        Reason = updateSellerOrderStatusDto.Reason,
+                    //    });
+                    //}
+
+                    if (status == OrderStatus.Cancelled)
+                        await RestockAndLogCancellation(sellerOrder, updateSellerOrderStatusDto);
+
                     await uow.SaveChangesAsync();
 
-                    var parentOrder = await uow.Orders.GetByIdAsync(sellerOrder.OrderId);
                     var customer = await uow.Auth.GetUserByIdAsync(parentOrder!.UserId);
                     backgroundJobService.EnqueueOrderStatusUpdateEmailJob(customer!.Email, sellerOrderId, updateSellerOrderStatusDto.Status);
 
@@ -187,11 +240,13 @@ namespace EcommerceApp.Application.Services
             // Cancel the seller order
             sellerOrder.Status = OrderStatus.Cancelled;
 
-            // Update the parent order's total amount
-            parentOrder.TotalAmount -= sellerOrder.Quantity * product.Price;
+            //// Update the parent order's total amount
+            //parentOrder.TotalAmount -= sellerOrder.Quantity * product.Price;
 
-            // Restock the product
-            product.StockQuantity += sellerOrder.Quantity;
+            //// Restock the product
+            //product.StockQuantity += sellerOrder.Quantity;
+
+            await RestockAndLogCancellation(sellerOrder, updateSellerOrderStatusDto);
 
             await uow.SaveChangesAsync();
 

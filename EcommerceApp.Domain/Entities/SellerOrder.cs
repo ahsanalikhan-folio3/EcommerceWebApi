@@ -17,6 +17,7 @@
         public int Quantity { get; set; }
         public required Order CorresponingOrder { get; set; }
         public required Product OrderedProduct { get; set; }
+        public required ICollection<CancelledOrder> CancelledOrders { get; set; }
         public OrderStatus Status { get; set; }
     }
 }

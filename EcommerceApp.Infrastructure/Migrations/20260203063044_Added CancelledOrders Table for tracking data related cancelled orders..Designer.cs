@@ -4,6 +4,7 @@ using EcommerceApp.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcommerceApp.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260203063044_Added CancelledOrders Table for tracking data related cancelled orders.")]
+    partial class AddedCancelledOrdersTablefortrackingdatarelatedcancelledorders
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,12 +85,6 @@ namespace EcommerceApp.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CancelledAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("CancelledById")
-                        .HasColumnType("int");
-
                     b.Property<string>("Reason")
                         .HasColumnType("nvarchar(max)");
 
@@ -98,11 +95,14 @@ namespace EcommerceApp.Infrastructure.Migrations
                     b.Property<int>("SellerOrderId")
                         .HasColumnType("int");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("CancelledById");
-
                     b.HasIndex("SellerOrderId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("CancelledOrders");
                 });
@@ -445,21 +445,21 @@ namespace EcommerceApp.Infrastructure.Migrations
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.CancelledOrder", b =>
                 {
-                    b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", "CancelledByUser")
-                        .WithMany("CancelledOrders")
-                        .HasForeignKey("CancelledById")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("EcommerceApp.Domain.Entities.SellerOrder", "CorrespondingSellerOrder")
                         .WithMany("CancelledOrders")
                         .HasForeignKey("SellerOrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CancelledByUser");
+                    b.HasOne("EcommerceApp.Domain.Entities.ApplicationUser", "User")
+                        .WithMany("CancelledOrders")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("CorrespondingSellerOrder");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EcommerceApp.Domain.Entities.Chat", b =>
