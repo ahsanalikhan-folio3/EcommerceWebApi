@@ -7,7 +7,6 @@
 *.DS_Store
 *.log
 .idea/
-./EcommerceApp.Infrastructure/Migrations/
 
 **/.nuget/
 

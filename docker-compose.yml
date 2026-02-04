@@ -1,5 +1,8 @@
 version: "3.9"
 
+
+# In connection strings, use "ecommerce-sqlserver" as the hostname to connect to the SQL Server container, and "ecommerce-redis" for Redis. In short use service names as hostnames for inter-container communication.
+
 services:
   ecommerce-sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest

@@ -52,8 +52,8 @@ namespace EcommerceApp.Application.Services
             // Invalidate relevant cache entries
             int sellerId = user.GetUserIdInt();
             string cacheSellerProductsKey = $"seller:{sellerId}:products";
-            //await cacheService.RemoveData(cacheAllProductsKey);
-            //await cacheService.RemoveData(cacheSellerProductsKey);
+            await cacheService.RemoveData(cacheAllProductsKey);
+            await cacheService.RemoveData(cacheSellerProductsKey);
 
             return mapper.Map<GetProductDto>(AddedProduct);
         }

@@ -9,7 +9,7 @@ namespace EcommerceApp.Application.Interfaces.Orders
         Task<bool> IsSellerOrderStatusDeliveredAsync(int sellerOrderId);
         Task<bool> SellerOrderBelongsToSeller(int sellerOrderId);
         Task<bool> SellerOrderExistAsync(int sellerOrderId);
-        Task<bool> CreateOrderAsync(OrderDto orderItems);
+        Task<List<OrderDetailsEmailDto>?> CreateOrderAsync(OrderDto orderItems);
         Task<bool> SubmitFeedback(int sellerOrderId, FeedbackDto feedbackDto);
         Task<List<GetSellerOrderDto>> GetAllOrders();
         Task<IEnumerable<GetSellerOrderDto>> GetAllCustomerOrders();

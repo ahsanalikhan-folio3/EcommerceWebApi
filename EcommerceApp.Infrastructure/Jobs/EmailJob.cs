@@ -251,10 +251,7 @@ namespace EcommerceApp.Infrastructure.Jobs
             await this.SendEmail(message);
         }
 
-        public async Task SendSuccessfullOrderCompletionEmail(
-    string email,
-    decimal totalAmount,
-    List<OrderDetailsEmailDto> orderDetailsEmailDtos)
+        public async Task SendSuccessfullOrderCompletionEmail(string email, decimal totalAmount, List<OrderDetailsEmailDto> orderDetailsEmailDtos)
         {
             var message = this.GetMimeMessage(email);
 

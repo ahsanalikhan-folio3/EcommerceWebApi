@@ -19,22 +19,9 @@ namespace EcommerceApp.Infrastructure.Database
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<Chat> Chats { get; set; }
         public DbSet<Message> Messages { get; set; }
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) 
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
-            // If database does not exist, create it and its schema (Particularly for docker environments)
-            try
-            {
-                var databaseCreator = Database.GetService<IRelationalDatabaseCreator>();
-                if (!databaseCreator.Exists())
-                {
-                    databaseCreator.Create();
-                    databaseCreator.CreateTables();
-                }
-            } 
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            Console.WriteLine("Connection String: " + this.Database.GetConnectionString());
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

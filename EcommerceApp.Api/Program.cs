@@ -170,6 +170,14 @@ builder.Services.AddCors(opt =>
 
 var app = builder.Build();
 
+/*
+    Important for Docker Environment: Apply migrations at startup
+    - Creates DB if missing + applies migrations (Since volume is used, data is persisted across container restarts)
+
+    It is necessary that migrations are proper (from initial to end)
+
+    PS: Don't add migrations in dockerignore file! :)
+*/
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

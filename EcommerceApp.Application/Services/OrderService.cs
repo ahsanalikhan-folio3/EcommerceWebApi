@@ -47,10 +47,10 @@ namespace EcommerceApp.Application.Services
             var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
             return sellerOrder is not null;
         }
-        public async Task<bool> CreateOrderAsync(OrderDto order)
+        public async Task<List<OrderDetailsEmailDto>?> CreateOrderAsync(OrderDto order)
         {
             if (order == null || order.SellerOrders == null || !order.SellerOrders.Any())
-                return false;
+                return null;
            
             /*
                 Automatically maps SellerOrderDto -> SellerOrder and starts tracking it hence we
@@ -69,10 +69,10 @@ namespace EcommerceApp.Application.Services
             foreach (var item in mappedOrder.SellerOrders)
             {
                 if (!productDict.TryGetValue(item.ProductId, out var dbProduct))
-                    return false; // Invalid product
+                    return null; // Invalid product
 
                 if (!dbProduct.IsAvailable || dbProduct.StockQuantity < item.Quantity)
-                    return false; // Product not available or insufficient stock
+                    return null; // Product not available or insufficient stock
 
                 item.Status = OrderStatus.Pending;
 
@@ -103,7 +103,7 @@ namespace EcommerceApp.Application.Services
             // Send Email in background
             backgroundJobService.EnqueueSuccessfullOrderCompletionEmailJob(user.Email!, totalAmount, orderDetailsEmailDtos);
 
-            return true;
+            return orderDetailsEmailDtos;
         }
         public async Task<bool> SubmitFeedback(int sellerOrderId, FeedbackDto feedbackDto)
         {
@@ -190,25 +190,6 @@ namespace EcommerceApp.Application.Services
                 {
                     await uow.SellerOrders.UpdateSellerOrderStatus(sellerOrderId, status);
 
-                    //if (status == OrderStatus.Cancelled)
-                    //{
-                    //    // Update the parent order's total amount
-                    //    parentOrder.TotalAmount -= sellerOrder.Quantity * product.Price;
-
-                    //    // Restock the product
-                    //    product.StockQuantity += sellerOrder.Quantity;
-
-                    //    // Log the cancellation
-                    //    await uow.CancelledOrders.AddCancelledOrderRecordAsync(new CancelledOrder
-                    //    {
-                    //        SellerOrderId = sellerOrderId,
-                    //        CancelledById = user.GetUserIdInt(),
-                    //        CancelledAt = DateTime.UtcNow,
-                    //        Role = user.Role,
-                    //        Reason = updateSellerOrderStatusDto.Reason,
-                    //    });
-                    //}
-
                     if (status == OrderStatus.Cancelled)
                         await RestockAndLogCancellation(sellerOrder, updateSellerOrderStatusDto);
 
@@ -239,12 +220,6 @@ namespace EcommerceApp.Application.Services
 
             // Cancel the seller order
             sellerOrder.Status = OrderStatus.Cancelled;
-
-            //// Update the parent order's total amount
-            //parentOrder.TotalAmount -= sellerOrder.Quantity * product.Price;
-
-            //// Restock the product
-            //product.StockQuantity += sellerOrder.Quantity;
 
             await RestockAndLogCancellation(sellerOrder, updateSellerOrderStatusDto);
 

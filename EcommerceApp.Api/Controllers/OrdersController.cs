@@ -52,8 +52,8 @@ namespace EcommerceApp.Api.Controllers
         public async Task<IActionResult> CreateOrder(OrderDto order)
         {
             var result = await orderService.CreateOrderAsync(order);
-            if (!result) return BadRequest(ApiResponse.ErrorResponse("Order creation failed.", null));
-            return Ok(ApiResponse.SuccessResponse("Order created.", null));
+            if (result is null) return BadRequest(ApiResponse.ErrorResponse("Order creation failed.", null));
+            return Ok(ApiResponse.SuccessResponse("Order created.", result));
         }
 
         [Authorize(Roles = AppRoles.Customer)]

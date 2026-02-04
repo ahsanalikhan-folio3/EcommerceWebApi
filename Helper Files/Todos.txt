@@ -1,4 +1,10 @@
-- Dockerize the environment.
+- Dockerize the environment. [DONE]
 - Add Stripe payment integration.
 - Add admin adding functionality.
 - What about real time chat rate limiting??
+- Order Cancellation. [DONE]
+- Redis Integration.
+- Automated Db Data population script. [DONE]
+- Verify User Email.
+- Send email to customer when a seller cancels an order.
+- Update Documentation.

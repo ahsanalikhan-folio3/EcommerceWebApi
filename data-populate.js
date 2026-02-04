@@ -39,183 +39,21 @@
 // const GET_PRODUCT_IMAGES = (productId) => `${PRODUCTS_BASE_URL}/${productId}/images`;
 // const DELETE_PRODUCT_IMAGES = (productId, imageId) => `${PRODUCTS_BASE_URL}/${productId}/images/${imageId}`;
 
-// const login = async (email, password) => {
-//     try {
-//         const response = await axios.post(LOGIN_URL, { email, password });
-//         console.log("SUCCESS:", response.data);
-//         return response.data.token;
-//     } catch (error) {
-//         console.error("ERROR:", error.response?.data || error.message);
-//     }
-// }
 
-// const activateUser = async (adminToken, userId) => {
-//     try {
-//         const response = await axios.post(USER_ACTIVATION_URL(userId), {
-//             headers: {
-//                 Authorization: `Bearer ${adminToken}`
-//             }
-//         }, {
-//             isActive: true
-//         })
-//         console.log("SUCCESS:", response.data);
-//     } catch (error) {
-//         console.error("ERROR:", error.response?.data || error.message);
-//     }
-// }
+/*
+    reset database script
 
-// const addCustomer = async (data) => {
-//     /*
-//         Body: 
-//         {
-//             "email": "string",
-//             "password": "string",
-//             "confirmPassword": "string",
-//             "role": "string",
-//             "phoneNumber": "string",
-//             "fullName": "string",
-//             "houseNumber": "string",
-//             "streetNumber": "string",
-//             "city": "string",
-//             "state": "string",
-//             "postalCode": "string",
-//             "country": "string",
-//             "gender": "string"
-//         }
-//     */
-// }
+    delete feedbacks;
+    delete cancelledorders;
+    delete sellerorders;
+    delete orders;
+    delete productimages;
+    delete products;
+    delete sellerprofiles;
+    delete customerprofiles;
+    delete applicationusers where not id = 195; // skip admin user
 
-// const addSeller = async (data) => {
-//     /*
-//         Body: 
-//         {
-//             "email": "string",
-//             "password": "string",
-//             "confirmPassword": "string",
-//             "role": "string",
-//             "phoneNumber": "string",
-//             "fullName": "string",
-//             "storename": "string",
-//             "city": "string",
-//             "state": "string",
-//             "postalCode": "string",
-//             "country": "string"
-//         }
-//     */
-// }
-
-// // Only Seller can add products 
-// const addProduct = async (token, data) => {
-//     /* 
-//         Body: 
-//         {
-//             "name": "string",
-//             "productSlug": "string",
-//             "description": "string",
-//             "category": "string",
-//             "stockQuantity": 0,
-//             "price": 0,
-//             "isAvailable": true
-//         }
-//     */
-// }
-
-// // Only Customer can post orders
-// const postOrder = async (token, data) => {
-
-//     /*
-//         Body: 
-//         {
-//             "sellerOrders": [
-//                 {
-//                     "productId": 0,
-//                     "quantity": 0
-//                 }
-//             ]
-//         }
-    
-//     */
-
-//     try {
-//         const response = await axios.post(CREATE_ORDER, data, {
-//             headers: { Authorization: `Bearer ${token}`}
-//         }, {data});
-//         console.log("SUCCESS:", response.data);
-//     } catch (error) {
-//         console.error("ERROR:", error.response?.data || error.message);
-//     }
-// }
-
-// // Only Customer can post feedback after product delivery (order status = Delivered)
-// const postFeedback = async (token, orderId, data) => {
-//     /*
-//         Body: 
-//         {
-//             "rating": 0,
-//             "comment": "string"
-//         }    
-//     */
-// }
-
-// const updateOrderStatus = async (token, orderId, status) => {
-//     /*
-//         status = 1 | 2 | 3 | 4 | 5 | 6
-//         1 = Pending, 2 = Processing, 3 = InWarehouse, 4 = Shipped, 5 = Delivered, 6 = Cancelled
-
-//         Admin can update to any status.
-//         Seller can update to Processing or Cancelled only if current status of order is Pending.
-//         Customer can update to Cancelled only if current status of the order is Pending.
-
-//         When cancelling an order, a reason can be provided.
-
-//         Body: 
-//         {
-//             "status": 1,
-//             "reason": "string"
-//         }
-//     */
-// }
-
-// const populateData = async () => {
-
-// }
-
-// // After seeding go to db update the role to admin and remove the customer profile record.
-// const populateSeedUserForAdmin = async () => {
-//     const data = {
-//         "role": "Customer",
-//         "email": "ahsan@gmail.com",
-//         "password": "Ahsan@123",
-//         "confirmPassword": "Ahsan@123",
-//         "phoneNumber": "03332345678",
-//         "fullName": "Ahsan",
-//         "houseNumber": "R-234",
-//         "streetNumber": "34",
-//         "city": "Karachi",
-//         "state": "Sindh",
-//         "postalCode": "123456",
-//         "country": "Pakistan",
-//         "gender": "Male"
-//     };
-//     try {
-//         const response = await axios.post(CUSTOMER_API_URL, data);
-//         console.log("SUCCESS:", response.data);
-//     } catch (error) {
-//         console.error("ERROR:", error.response?.data || error.message);
-//     }
-// }
-
-// // --- COMMAND LINE ARGUMENT LOGIC ---
-// // To run this: node data-populate.js admin
-// const arg = process.argv[2]; 
-
-// if (arg === "admin") {
-//     console.log("Seed Mode: Admin User");
-//     populateSeedUserForAdmin();
-// } else {
-//     console.log("Please pass 'admin' as an argument to seed data.");
-// }
-
+*/
 
 const axios = require("axios");
 
@@ -223,9 +61,10 @@ const axios = require("axios");
 const CONFIG = {
     NUM_SELLERS: 5,
     NUM_CUSTOMERS: 5,
-    NUM_PRODUCTS: 20,
-    NUM_ORDERS: 20,
-    NUM_FEEDBACKS: 10,
+    NUM_PRODUCTS: 10,
+    NUM_ORDERS: 8,
+    NUM_FEEDBACKS: 2,
+    ORDER_STATUS_DISTRIBUTION_FACTOR: 2,
     DEFAULT_PASS: "Password@123"
 };
 
@@ -242,7 +81,35 @@ const USER_ACTIVATION_URL = (userId) => `${AUTH_BASE_URL}/users/${userId}`;
 const LOGIN_URL = `${AUTH_BASE_URL}/login`;
 const UPDATE_ORDER_STATUS = (orderId) => `${ORDERS_BASE_URL}/${orderId}`;
 
+
+const delay = (ms) => new Promise(res => setTimeout(res, ms));
+
 // --- API HELPERS ---
+
+// After seeding go to db update the role to admin and remove the customer profile record.
+const populateSeedUserForAdmin = async () => {
+    const data = {
+        "role": "Customer",
+        "email": "ahsan@gmail.com",
+        "password": "Ahsan@123",
+        "confirmPassword": "Ahsan@123",
+        "phoneNumber": "03332345678",
+        "fullName": "Ahsan",
+        "houseNumber": "R-234",
+        "streetNumber": "34",
+        "city": "Karachi",
+        "state": "Sindh",
+        "postalCode": "123456",
+        "country": "Pakistan",
+        "gender": "Male"
+    };
+    try {
+        const response = await axios.post(CUSTOMER_API_URL, data);
+        console.log("SUCCESS:", response.data);
+    } catch (error) {
+        console.error("ERROR:", error.response?.data || error.message);
+    }
+}
 
 const login = async (email, password) => {
     try {
@@ -260,6 +127,24 @@ const activateUser = async (adminToken, userId) => {
     } catch (e) { console.error(`[ACTIVATE ERROR] User ${userId}`); }
 };
 
+/*
+    Body: 
+    {
+        "email": "string",
+        "password": "string",
+        "confirmPassword": "string",
+        "role": "string",
+        "phoneNumber": "string",
+        "fullName": "string",
+        "houseNumber": "string",
+        "streetNumber": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string",
+        "gender": "string"
+    }
+*/
 const addCustomer = async (data) => {
     try {
         const res = await axios.post(CUSTOMER_API_URL, data);
@@ -268,6 +153,22 @@ const addCustomer = async (data) => {
     } catch (e) { console.error(`[CREATE ERROR] Customer ${data.email}`); }
 };
 
+/*
+    Body: 
+    {
+        "email": "string",
+        "password": "string",
+        "confirmPassword": "string",
+        "role": "string",
+        "phoneNumber": "string",
+        "fullName": "string",
+        "storename": "string",
+        "city": "string",
+        "state": "string",
+        "postalCode": "string",
+        "country": "string"
+    }
+*/
 const addSeller = async (data) => {
     try {
         const res = await axios.post(SELLER_API_URL, data);
@@ -276,6 +177,20 @@ const addSeller = async (data) => {
     } catch (e) { console.error(`[CREATE ERROR] Seller ${data.email}`); }
 };
 
+/* 
+    Only seler can add products.
+
+    Body: 
+    {
+        "name": "string",
+        "productSlug": "string",
+        "description": "string",
+        "category": "string",
+        "stockQuantity": 0,
+        "price": 0,
+        "isAvailable": true
+    }
+*/
 const addProduct = async (token, data) => {
     try {
         const res = await axios.post(PRODUCTS_BASE_URL, data, {
@@ -286,16 +201,46 @@ const addProduct = async (token, data) => {
     } catch (e) { console.error(`[PRODUCT ERROR] ${data.name}`); }
 };
 
+
+/*
+    Only Customer can post orders
+    
+    Body: 
+    {
+        "sellerOrders": [
+            {
+                "productId": 0,
+                "quantity": 0
+            }
+        ]
+    }
+*/
 const postOrder = async (token, data) => {
     try {
         const res = await axios.post(ORDERS_BASE_URL, data, {
             headers: { Authorization: `Bearer ${token}` }
         });
-        console.log(`[ORDER] Created: ID ${res.data.data.id}`);
+        console.log(`[ORDER] Created: ${res.data.data}`);
         return res.data.data;
-    } catch (e) { console.error(`[ORDER ERROR] Failed to place order`); }
+    } catch (e) { console.error(`[ORDER ERROR] Failed to place order`, e); }
 };
 
+/*
+    status = 1 | 2 | 3 | 4 | 5 | 6
+    1 = Pending, 2 = Processing, 3 = InWarehouse, 4 = Shipped, 5 = Delivered, 6 = Cancelled
+
+    Admin can update to any status.
+    Seller can update to Processing or Cancelled only if current status of order is Pending.
+    Customer can update to Cancelled only if current status of the order is Pending.
+
+    When cancelling an order, a reason can be provided.
+
+    Body: 
+    {
+        "status": 1,
+        "reason": "string"
+    }
+*/
 const updateOrderStatus = async (token, orderId, status, reason = null) => {
     try {
         await axios.put(UPDATE_ORDER_STATUS(orderId), { status, reason }, {
@@ -305,6 +250,15 @@ const updateOrderStatus = async (token, orderId, status, reason = null) => {
     } catch (e) { console.error(`[STATUS ERROR] Order ${orderId}`); }
 };
 
+/*
+    Only Customer can post feedback after product delivery (order status = Delivered)
+    
+    Body: 
+    {
+        "rating": 0,
+        "comment": "string"
+    }    
+*/
 const postFeedback = async (token, orderId, data) => {
     try {
         await axios.post(`${ORDERS_BASE_URL}/${orderId}/feedback`, data, {
@@ -315,7 +269,6 @@ const postFeedback = async (token, orderId, data) => {
 };
 
 // --- SEEDING LOGIC ---
-
 const populateData = async () => {
     console.log("\n--- STARTING SEED PROCESS ---");
     const adminToken = await login(ADMIN_EMAIL, ADMIN_PASS);
@@ -366,6 +319,9 @@ const populateData = async () => {
         if (p) seller.products.push(p);
     }
 
+    console.log("\nWaiting 5 seconds to ensure we dont hit a rate limit on google's smtp server...");
+    await delay(5000);
+
     // 4. ORDERS
     console.log(`\n> Creating ${CONFIG.NUM_ORDERS} Orders...`);
     for (let i = 0; i < CONFIG.NUM_ORDERS; i++) {
@@ -381,15 +337,15 @@ const populateData = async () => {
 
         if (order) {
             // Distribute statuses
-            if (i < 20) {
-                await updateOrderStatus(adminToken, order.id, 5); // Delivered
-                orders.push({ id: order.id, customerToken: customer.token, status: 5 });
-            } else if (i < 24) {
-                await updateOrderStatus(seller.token, order.id, 2); // Processing
-            } else if (i < 27) {
-                await updateOrderStatus(customer.token, order.id, 6, "Customer cancelled.");
+            if (i < CONFIG.ORDER_STATUS_DISTRIBUTION_FACTOR) {
+                await updateOrderStatus(adminToken, order[0].sellerOrderId, 5); // Delivered
+                orders.push({ id: order[0].sellerOrderId, customerToken: customer.token, status: 5 });
+            } else if (i < CONFIG.ORDER_STATUS_DISTRIBUTION_FACTOR * 2) {
+                await updateOrderStatus(seller.token, order[0].sellerOrderId, 2); // Processing
+            } else if (i < CONFIG.ORDER_STATUS_DISTRIBUTION_FACTOR * 3) {
+                await updateOrderStatus(customer.token, order[0].sellerOrderId, 6, "Customer cancelled.");
             } else {
-                await updateOrderStatus(seller.token, order.id, 6, "Seller out of stock.");
+                await updateOrderStatus(seller.token, order[0].sellerOrderId, 6, "Seller out of stock.");
             }
         }
     }
@@ -411,7 +367,6 @@ const populateData = async () => {
 // --- RUN LOGIC ---
 const arg = process.argv[2]; 
 if (arg === "admin") {
-    // Note: Your original function for the very first user
     populateSeedUserForAdmin(); 
 } else if (arg === "seed") {
     populateData();
