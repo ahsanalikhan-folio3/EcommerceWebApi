@@ -7,4 +7,6 @@
 - Automated Db Data population script. [DONE]
 - Verify User Email.
 - Send email to customer when a seller cancels an order.
+- Add Site24x7 APM for monitoring performance of the application.
+- Send emails after a delay, like 2-3 min delay to avoid rate limit of google smtp server that caused data-populate.js script crash or can cause application crash at high traffics.
 - Update Documentation.
