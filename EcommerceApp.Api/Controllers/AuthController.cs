@@ -49,6 +49,13 @@ namespace EcommerceApp.Api.Controllers
             if (result is null) return BadRequest(ApiResponse.ErrorResponse("User already exists.", null));
             return Ok(ApiResponse.SuccessResponse("Seller successfully added.", result));
         }
+        [HttpPost("Verify-Otp")]
+        public async Task<IActionResult> VerifyOtp (EmailVerificationDto emailVerificationDto)
+        {
+            var result = await authService.VerifyEmailVerificationOtp(emailVerificationDto);
+            if (!result) return BadRequest(ApiResponse.ErrorResponse("Email verification failed.", null));
+            return Ok(ApiResponse.SuccessResponse("Email successfully verified.", result));
+        }
         [HttpPost("Login")]
         public async Task<IActionResult> LoginUser (LoginDto user)
         {
@@ -59,6 +66,9 @@ namespace EcommerceApp.Api.Controllers
             // User must be active
             var isActive = await authService.UserIsActiveAsync(user.Email);
             if (!isActive) return BadRequest(ApiResponse.ErrorResponse("User is deactivated.", null));
+
+            // User email must be verified
+            // Coming soon: await authService.UserEmailVerifiedAsync(user.Email);
 
             // Password must be correct
             var isPasswordCorrect = await authService.ValidatePassword(user);

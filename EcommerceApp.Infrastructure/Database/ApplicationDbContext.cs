@@ -19,6 +19,7 @@ namespace EcommerceApp.Infrastructure.Database
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<Chat> Chats { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<EmailVerificationOtp> EmailVerificationOtps { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
             Console.WriteLine("Connection String: " + this.Database.GetConnectionString());
@@ -124,18 +125,25 @@ namespace EcommerceApp.Infrastructure.Database
                 .HasIndex(x => new { x.OrderId, x.ProductId })
                 .IsUnique();
 
-            // SellerOrders → CancelledOrders (M : 1)
+            // SellerOrders → CancelledOrders (1 : M)
             modelBuilder.Entity<CancelledOrder>()
                 .HasOne(x => x.CorrespondingSellerOrder)
                 .WithMany(o => o.CancelledOrders)
                 .HasForeignKey(x => x.SellerOrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // ApplicationUser → CancelledOrders (M : 1)
+            // ApplicationUser → CancelledOrders (1 : M)
             modelBuilder.Entity<CancelledOrder>()
                 .HasOne(x => x.CancelledByUser)
                 .WithMany(o => o.CancelledOrders)
                 .HasForeignKey(x => x.CancelledById)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ApplicationUser → EmailVerificationOtp (1 : M)
+            modelBuilder.Entity<EmailVerificationOtp>()
+                .HasOne(x => x.User)
+                .WithMany(o => o.EmailVerificationOtps)
+                .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // ProductImages → Product (M : 1)

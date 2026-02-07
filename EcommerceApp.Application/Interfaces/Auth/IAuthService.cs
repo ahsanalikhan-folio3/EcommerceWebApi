@@ -8,6 +8,8 @@ namespace EcommerceApp.Application.Interfaces.Auth
         Task<GetAdminProfileDto?> RegisterAdmin(AdminProfileDto customer);
         Task<GetCustomerProfileDto?> RegisterCustomer(CustomerProfileDto customer);
         Task<GetSellerProfileDto?> RegisterSeller(SellerProfileDto customer);
+        Task<bool> SendEmailVerificationOtp(string email);
+        Task<bool> VerifyEmailVerificationOtp(EmailVerificationDto dto);
         Task<bool> UserExistAsyncByEmail(string email);
         Task<bool> UserExistAsyncById(int id);
         Task<bool> UserIsActiveAsync(string email);

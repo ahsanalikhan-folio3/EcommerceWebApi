@@ -1,12 +1,16 @@
 ﻿using AutoMapper;
 using EcommerceApp.Application.Common;
 using EcommerceApp.Application.Dtos;
+using EcommerceApp.Application.Exceptions;
 using EcommerceApp.Application.Interfaces;
 using EcommerceApp.Application.Interfaces.Auth;
 using EcommerceApp.Application.Interfaces.JobServices;
 using EcommerceApp.Application.Interfaces.User;
 using EcommerceApp.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace EcommerceApp.Application.Services
 {
@@ -18,7 +22,8 @@ namespace EcommerceApp.Application.Services
         private readonly IUserService user;
         private readonly IBackgroundJobService backgroundJobService;
         private readonly PasswordHasher<ApplicationUser> passwordHasher;
-        public AuthService(IUnitOfWork uow, IMapper mapper, IJwtService jwtService, IUserService user, IBackgroundJobService backgroundJobService)
+        private readonly IConfiguration configuration;
+        public AuthService(IUnitOfWork uow, IMapper mapper, IJwtService jwtService, IUserService user, IBackgroundJobService backgroundJobService, IConfiguration configuration)
         {
             this.user = user;
             this.uow = uow;
@@ -26,6 +31,7 @@ namespace EcommerceApp.Application.Services
             this.jwtService = jwtService;
             this.backgroundJobService = backgroundJobService;
             this.passwordHasher = new PasswordHasher<ApplicationUser>();
+            this.configuration = configuration;
         }
         public async Task<bool> UserExistAsyncById (int id)
         {
@@ -97,7 +103,8 @@ namespace EcommerceApp.Application.Services
             if (!result) return null;
 
             await uow.SaveChangesAsync();
-            backgroundJobService.EnqueueCustomerWelcomeEmailJob(customer.Email);
+
+            await this.SendEmailVerificationOtp(appUser.Email);
 
             GetCustomerProfileDto mappedResult = mapper.Map<GetCustomerProfileDto>(customer);
             mappedResult.Id = appUser.Id;
@@ -112,6 +119,8 @@ namespace EcommerceApp.Application.Services
             if (appUser is null) return null;
 
             AdminProfile adminProfile = mapper.Map<AdminProfile>(admin);
+            appUser.IsActive = true; // Directly register admins
+            appUser.IsEmailVerified = true; // Directly register admins
             adminProfile.User = appUser;
             var result = await uow.Admins.AddAdminProfile(adminProfile);
             if (!result) return null;
@@ -137,11 +146,91 @@ namespace EcommerceApp.Application.Services
             if (!result) return null;
 
             await uow.SaveChangesAsync();
-            backgroundJobService.EnqueueAccountReviewOfSellerOnRegistrationEmailJob(seller.Email);
+
+            await this.SendEmailVerificationOtp(appUser.Email);
 
             GetSellerProfileDto mappedResult = mapper.Map<GetSellerProfileDto>(seller);
             mappedResult.Id = appUser.Id;
             return mappedResult;
+        }
+        
+        public async Task<bool> SendEmailVerificationOtp (string email) 
+        {
+            // 1️- Generate a secure 6-digit OTP
+            var otp = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
+
+            // 2️- Hash the OTP 
+            using var sha256 = SHA256.Create();
+            var otpHashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(otp));
+            var otpHash = Convert.ToBase64String(otpHashBytes);
+
+            var appUser = await uow.Auth.GetUserByEmailAsync(email);
+            if (appUser == null) return false;
+
+            // Delete any existing OTP for the user before adding a new one
+            await uow.Auth.DeleteAllEmailVerificationOtp(appUser.Id);
+
+            var emailVerificationOtp = new EmailVerificationOtp()
+            {
+                UserId = appUser.Id,
+                HashedOtp = otpHash,
+                OtpAttempts = 0,
+                ExpiryTime = DateTime.UtcNow.AddMinutes(10), // Fetch this from environment variable later
+            };
+
+            await uow.Auth.AddEmailVerificationOtp(emailVerificationOtp);
+            await uow.SaveChangesAsync();
+
+            // Send Email
+            backgroundJobService.EnqueueOtpEmailJob(appUser.Email, otp, 10);
+            return true;
+        }
+        public async Task<bool> VerifyEmailVerificationOtp(EmailVerificationDto dto)
+        {
+            var currTime = DateTime.UtcNow;
+
+            var user = await uow.Auth.GetUserByEmailAsync(dto.Email);
+            if (user == null) return false;
+
+            var emailOtp = await uow.Auth.GetEmailVerificationOtp(user.Id);
+            if (emailOtp == null) return false;
+
+            // 1️- Expiry check
+            if (currTime > emailOtp.ExpiryTime)
+            {
+                await uow.Auth.DeleteAllEmailVerificationOtp(user.Id);
+                await uow.SaveChangesAsync();
+                return false;
+            }
+
+            // 2️- Hash incoming OTP
+            using var sha256 = SHA256.Create();
+            var otpHash = Convert.ToBase64String(
+                sha256.ComputeHash(Encoding.UTF8.GetBytes(dto.Otp)));
+
+            // 3️- Compare
+            if (otpHash == emailOtp.HashedOtp)
+            {
+                user.IsEmailVerified = true;
+                await uow.Auth.DeleteAllEmailVerificationOtp(user.Id);
+                await uow.SaveChangesAsync();
+
+                // Enqueue background job to send different email based on the role of the user.
+                if (user.Role == AppRoles.Seller) backgroundJobService.EnqueueAccountReviewOfSellerOnRegistrationEmailJob(user.Email);
+
+                if (user.Role == AppRoles.Customer) backgroundJobService.EnqueueCustomerWelcomeEmailJob(user.Email);
+
+                return true;
+            }
+
+            // 4️- Failed attempt
+            emailOtp.OtpAttempts++;
+
+            if (emailOtp.OtpAttempts >= 3)
+                await uow.Auth.DeleteAllEmailVerificationOtp(user.Id);
+
+            await uow.SaveChangesAsync();
+            return false;
         }
 
         public async Task<object?> GetUserProfileAsync()
@@ -161,8 +250,7 @@ namespace EcommerceApp.Application.Services
             {
                 var sellerProfile = await uow.Auth.GetSellerProfileByIdAsync(userId);
                 return mapper.Map<GetSellerProfileDto>(sellerProfile);
-            }
-            return null;
+            } else throw new BusinessRuleException("User role is not valid.");
         }
     }
 }

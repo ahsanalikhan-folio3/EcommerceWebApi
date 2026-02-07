@@ -13,6 +13,18 @@ namespace EcommerceApp.Infrastructure.Repositories
             this.db = db;
         }
 
+        public async Task<EmailVerificationOtp> AddEmailVerificationOtp (EmailVerificationOtp emailVerificationOtp)
+        {
+            var result = await db.EmailVerificationOtps.AddAsync(emailVerificationOtp);
+            return result.Entity;
+        }
+        public async Task DeleteAllEmailVerificationOtp(int userId)
+        {
+            await db.EmailVerificationOtps
+                .Where(x => x.UserId == userId)
+                .ExecuteDeleteAsync();
+        }
+
         public async Task<ApplicationUser> AddUser(ApplicationUser user)
         {
             var result = await db.ApplicationUsers.AddAsync(user);
@@ -72,6 +84,13 @@ namespace EcommerceApp.Infrastructure.Repositories
         public async Task<bool> UserExistByIdAsync(int Id)
         {
             return await db.ApplicationUsers.AnyAsync(x => x.Id == Id);
+        }
+
+        public async Task<EmailVerificationOtp?> GetEmailVerificationOtp(int userId)
+        {
+            return await db.EmailVerificationOtps
+                .Where(x => x.UserId == userId)
+                .FirstOrDefaultAsync();
         }
     }
 }

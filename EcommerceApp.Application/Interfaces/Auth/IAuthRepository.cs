@@ -13,6 +13,9 @@ namespace EcommerceApp.Application.Interfaces.Auth
         Task<AdminProfile?> GetAdminProfileByIdAsync(int id);
         Task<SellerProfile?> GetSellerProfileByIdAsync(int id);
         Task<CustomerProfile?> GetCustomerProfileByIdAsync(int id);
+        Task<EmailVerificationOtp> AddEmailVerificationOtp(EmailVerificationOtp emailVerificationOtp);
         Task<ApplicationUser> AddUser(ApplicationUser user);
+        Task DeleteAllEmailVerificationOtp(int userId);
+        Task<EmailVerificationOtp?> GetEmailVerificationOtp(int userId);
     }
 }

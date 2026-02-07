@@ -431,5 +431,45 @@ namespace EcommerceApp.Infrastructure.Jobs
 
             await this.SendEmail(message);
         }
+
+        public async Task SendOtpEmail(string email, string otp, int expiryLimitInMinutes)
+        {
+            var message = this.GetMimeMessage(email);
+
+            message.Subject = "Your One-Time Password (OTP)";
+
+            message.Body = new TextPart("html")
+            {
+                Text = $@"
+<div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+    
+    <h2>Verify Your Email 🔐</h2>
+
+    <p>Hi,</p>
+
+    <p>Your One-Time Password (OTP) is:</p>
+
+    <div style='
+        font-size: 24px;
+        font-weight: bold;
+        letter-spacing: 4px;
+        margin: 20px 0;
+        color: #2563eb;'>
+        {otp}
+    </div>
+
+    <p>This OTP will expire in <strong>{expiryLimitInMinutes} minutes</strong> .</p>
+
+    <p>If you did not request this code, please ignore this email.</p>
+
+    <p>Thank you,<br/>
+    <strong>The Ecommerce Team</strong></p>
+
+</div>"
+            };
+
+            await this.SendEmail(message);
+        }
+
     }
 }
