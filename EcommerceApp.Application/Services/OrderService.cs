@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using EcommerceApp.Application.Common;
 using EcommerceApp.Application.Dtos;
 using EcommerceApp.Application.Interfaces;
 using EcommerceApp.Application.Interfaces.JobServices;
@@ -160,6 +161,7 @@ namespace EcommerceApp.Application.Services
         public async Task<bool> UpdateSellerOrderStatusForAdmin(int sellerOrderId, UpdateSellerOrderStatusDto updateSellerOrderStatusDto)
         {
             var sellerOrder = await uow.SellerOrders.GetSellerOrdersById(sellerOrderId);
+            
             await uow.SellerOrders.UpdateSellerOrderStatus(sellerOrderId, updateSellerOrderStatusDto.Status);
             
             if (updateSellerOrderStatusDto.Status == OrderStatus.Cancelled)
@@ -169,7 +171,17 @@ namespace EcommerceApp.Application.Services
 
             var parentOrder = await uow.Orders.GetByIdAsync(sellerOrder!.OrderId);
             var customer = await uow.Auth.GetUserByIdAsync(parentOrder!.UserId);
-            backgroundJobService.EnqueueOrderStatusUpdateEmailJob(customer!.Email!, sellerOrderId, updateSellerOrderStatusDto.Status);
+            var product = await uow.Products.GetProductById(sellerOrder!.ProductId);
+            var seller = await uow.Auth.GetUserByIdAsync(product!.SellerId);
+
+            if (updateSellerOrderStatusDto.Status == OrderStatus.Cancelled)
+            {
+                // Send cancellation email to both customer and seller mentioning that the cancellation was done by admin
+                backgroundJobService.EnqueueOrderCancellationEmailJob(customer!.Email!, sellerOrderId, AppRoles.Admin);
+                backgroundJobService.EnqueueOrderCancellationEmailJob(seller!.Email!, sellerOrderId, AppRoles.Admin);
+            }
+            else
+                backgroundJobService.EnqueueOrderStatusUpdateEmailJob(customer!.Email!, sellerOrderId, updateSellerOrderStatusDto.Status);
 
             return true;
         }
@@ -196,7 +208,11 @@ namespace EcommerceApp.Application.Services
                     await uow.SaveChangesAsync();
 
                     var customer = await uow.Auth.GetUserByIdAsync(parentOrder!.UserId);
-                    backgroundJobService.EnqueueOrderStatusUpdateEmailJob(customer!.Email, sellerOrderId, updateSellerOrderStatusDto.Status);
+
+                    if (status == OrderStatus.Cancelled)
+                        backgroundJobService.EnqueueOrderCancellationEmailJob(customer!.Email, sellerOrderId, AppRoles.Seller);
+                    else
+                        backgroundJobService.EnqueueOrderStatusUpdateEmailJob(customer!.Email, sellerOrderId, updateSellerOrderStatusDto.Status);
 
                     return true;
                 }
@@ -227,7 +243,7 @@ namespace EcommerceApp.Application.Services
 
             var sellerId = product.SellerId;
             var seller = await uow.Auth.GetUserByIdAsync(sellerId);
-            backgroundJobService.EnqueueOrderStatusUpdateEmailJob(seller!.Email, sellerOrderId, updateSellerOrderStatusDto.Status);
+            backgroundJobService.EnqueueOrderCancellationEmailJob(seller!.Email, sellerOrderId, AppRoles.Customer);
             
             return true;
         }

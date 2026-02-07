@@ -32,5 +32,10 @@ namespace EcommerceApp.Infrastructure.JobService
         {
             BackgroundJob.Enqueue<IEmailJob>(job => job.SendOrderStatusUpdateEmail(email, sellerOrderId, orderStatus));
         }
+
+        public void EnqueueOrderCancellationEmailJob(string email, int sellerOrderId, string cancelledBy)
+        {
+            BackgroundJob.Enqueue<IEmailJob>(job => job.SendOrderCancellationEmail(email, sellerOrderId, cancelledBy));
+        }
     }
 }

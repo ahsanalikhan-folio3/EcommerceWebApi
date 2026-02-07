@@ -11,5 +11,6 @@ namespace EcommerceApp.Application.Interfaces.JobServices
         public void EnqueueAccountDeactivationEmailJob(string email);
         public void EnqueueAccountReviewOfSellerOnRegistrationEmailJob(string email);
         public void EnqueueOrderStatusUpdateEmailJob(string email, int sellerOrderId, OrderStatus orderStatus);
+        public void EnqueueOrderCancellationEmailJob(string email, int sellerOrderId, string cancelledBy);
     }
 }

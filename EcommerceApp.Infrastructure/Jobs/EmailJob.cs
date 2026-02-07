@@ -211,26 +211,6 @@ namespace EcommerceApp.Infrastructure.Jobs
     <p><strong>The Ecommerce Team</strong></p>
 
 </div>",
-                OrderStatus.Cancelled => $@"
-<div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
-
-    <h2>Order Cancelled ❌</h2>
-
-    <p>Hi,</p>
-
-    <p>We wanted to inform you that the customer has <strong>cancelled</strong> the order 
-       <strong>#{sellerOrderId}</strong>.</p>
-
-    <p>Please update your records accordingly and do not proceed with processing this order.</p>
-
-    <p>If you have any questions or need further assistance, feel free to contact our support team.</p>
-
-    <p>Thank you for being a valued partner with <strong>Our Ecommerce App</strong>!</p>
-
-    <p><strong>The Ecommerce Team</strong></p>
-
-</div>",
-
                 _ => $@"
 <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
 
@@ -370,6 +350,83 @@ namespace EcommerceApp.Infrastructure.Jobs
 
 </div>
 "
+            };
+
+            await this.SendEmail(message);
+        }
+        // User Role defines who cancelled the order, if it's Customer then email goes to seller and if it's Seller then email goes to customer and if it's admin then email goes to both customer and seller.
+        public async Task SendOrderCancellationEmail(string email, int sellerOrderId, string cancelledBy)
+        {
+            var message = this.GetMimeMessage(email);
+            
+            var subject = cancelledBy switch
+            {
+                AppRoles.Customer => $@"
+<div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+
+    <h2>Order Cancelled ❌</h2>
+
+    <p>Hi,</p>
+
+    <p>We wanted to inform you that the customer has <strong>cancelled</strong> the order 
+       <strong>#{sellerOrderId}</strong>.</p>
+
+    <p>Please update your records accordingly and do not proceed with processing this order.</p>
+
+    <p>If you have any questions or need further assistance, feel free to contact our support team.</p>
+
+    <p>Thank you for being a valued partner with <strong>Our Ecommerce App</strong>!</p>
+
+    <p><strong>The Ecommerce Team</strong></p>
+
+</div>"
+,
+                AppRoles.Seller => $@"
+<div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+
+    <h2>Order Cancelled ❌</h2>
+
+    <p>Hi,</p>
+
+    <p>We’re sorry to inform you that the <strong>seller has cancelled</strong> your order 
+       <strong>#{sellerOrderId}</strong>.</p>
+
+    <p>Please visit our website and review your order details to see the <strong>cancellation reason provided by the seller</strong>.</p>
+
+    <p>We apologize for any inconvenience this may have caused and appreciate your understanding.</p>
+
+    <p>If you have any questions or need help placing a new order, our support team is always here to assist you.</p>
+
+    <p>Thank you for shopping with <strong>Our Ecommerce App</strong>.</p>
+
+    <p><strong>The Ecommerce Team</strong></p>
+
+</div>"
+,
+                AppRoles.Admin => $@"
+<div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+
+    <h2>Order Cancelled ❌</h2>
+
+    <p>Hi,</p>
+
+    <p>We’re writing to inform you that your order 
+       <strong>#{sellerOrderId}</strong> has been <strong>cancelled by the website administrator</strong>.</p>
+
+    <p>Please visit our website and review your order details to see the <strong>cancellation reason provided by the admin</strong>.</p>
+
+    <p>We sincerely apologize for any inconvenience this may have caused and appreciate your understanding.</p>
+
+    <p>If you have any questions or need assistance placing a new order, our support team is always here to help.</p>
+
+    <p>Thank you for shopping with <strong>Our Ecommerce App</strong>.</p>
+
+    <p><strong>The Ecommerce Team</strong></p>
+
+</div>"
+,
+                _ => $@"Your Order # {sellerOrderId} is cancelled."
+
             };
 
             await this.SendEmail(message);
